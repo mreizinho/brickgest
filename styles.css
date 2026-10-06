@@ -303,7 +303,7 @@ html,body{height:100%;overflow:hidden}
 .transfer-stock-placeholder{display:grid;place-items:center;background:#f1f3f4;color:#8b9093;border-radius:6px;font-size:28px}
 .transfer-selection-page{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 .transfer-selection-footer{position:fixed;z-index:30;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:14px 20px calc(18px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);box-shadow:0 -3px 16px #00000012}
-.transfer-selection-footer .primary{width:min(100%,520px);min-height:60px}
+.transfer-selection-footer .primary{width:min(100%,520px);min-height:60px;padding:12px 20px;border:0;border-radius:14px;background:#ffd600;color:#171717;box-shadow:0 5px 0 #d0d2d3;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer}.transfer-selection-footer .primary:active{transform:translateY(3px);box-shadow:0 2px 0 #d0d2d3}.transfer-selection-footer .primary:disabled{opacity:.45;cursor:not-allowed;transform:none}.transfer-selection-footer .primary:focus-visible{outline:3px solid #19334a;outline-offset:3px}@media(max-width:850px){.transfer-selection-footer .primary{min-height:52px;font-size:15px}}
 @media(max-width:480px){.transfer-stock-item{gap:10px;padding:12px}.transfer-stock-thumbnail{width:58px;height:52px}}
 .movement-actions{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0}
 @media(max-width:850px){.actions-copy .movement-actions{order:4;grid-template-columns:1fr}}
