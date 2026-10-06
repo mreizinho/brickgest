@@ -1108,7 +1108,8 @@ function updateMobileConcludeButton() {
   const viewport = content.getBoundingClientRect();
   const visible = bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
   floating.hidden = visible || original.disabled;
-  floating.style.top = `${header.getBoundingClientRect().bottom + 10}px`;
+  const toastBottom = document.querySelector(".app-toast")?.getBoundingClientRect().bottom || 0;
+  floating.style.top = `${Math.max(header.getBoundingClientRect().bottom + 20, toastBottom + 12)}px`;
 }
 
 window.addEventListener("resize", updateMobileConcludeButton);
@@ -1520,6 +1521,7 @@ function showMovementNotice(message, type) {
   movementNoticeTimer = window.setTimeout(() => {
     state.movementNotice = null;
     document.querySelector(".app-toast")?.remove();
+    updateMobileConcludeButton();
   }, 5000);
 }
 

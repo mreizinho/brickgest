@@ -18,7 +18,10 @@ run(`
  state.mode='lote';setupMobileConcludeButton();
 `);
 assert.equal(run('floating.hidden'), false);
-assert.equal(run('floating.style.top'), '74px');
+assert.equal(run('floating.style.top'), '84px');
+run(`const savedQuery=document.querySelector;document.querySelector=selector=>selector==='.app-toast'?{getBoundingClientRect:()=>({bottom:130})}:savedQuery(selector);updateMobileConcludeButton()`);
+assert.equal(run('floating.style.top'),'142px');
+run(`document.querySelector=savedQuery;updateMobileConcludeButton()`);
 run('floating.click()');
 assert.equal(run('clicks'), 1);
 run('bounds={top:550,bottom:600};observer()');
