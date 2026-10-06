@@ -375,3 +375,9 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .transfer-barcode-button:active{transform:translateY(2px);box-shadow:0 2px 0 #d0d2d3}
 .transfer-barcode-button:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .transfer-barcode-button:focus-visible{outline:3px solid #19334a;outline-offset:3px}
+
+.transfer-selection-page .batch-panel{position:relative}
+.transfer-selection-page .transfer-barcode-button{position:absolute;top:34px;right:34px}
+.transfer-selection-page .batch-heading>p{padding-right:64px;min-height:24px}
+.transfer-selection-page .transfer-selection-title{padding-right:64px}
+@media(max-width:850px){.transfer-selection-page .transfer-barcode-button{top:16px;right:16px}}
