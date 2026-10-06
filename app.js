@@ -530,7 +530,7 @@ function mainHeaderMarkup(extraClass = "", menuId = "main-menu") {
 function lotMobileHeaderMarkup() {
   const title = batchModeLabel();
   return `<header class="masthead movement-header lot-mobile-header">
-    ${isInventoryMode() ? "" : `<button class="movement-header-back" data-action="back" aria-label="Voltar às opções">${icons.back}</button>`}
+    ${isInventoryMode() ? "" : `<button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button>`}
     <h1 data-lot-mobile-title>${title}</h1>
     <div class="header-menu movement-header-menu">
       <button class="hamburger-button" data-close-hover-ready="${state.menuCloseHoverReady}" data-action="toggle-menu" aria-expanded="${state.menuOpen}" aria-controls="lot-mobile-menu" aria-label="${state.menuOpen ? "Fechar" : "Abrir"} menu">${state.menuOpen ? icons.close : icons.menu}</button>
@@ -542,7 +542,7 @@ function lotMobileHeaderMarkup() {
 function headerMarkup() {
   if (["movimentos", "entrada", "saida", "transferencia"].includes(state.mode)) {
     return `<header class="masthead movement-header">
-      <button class="movement-header-back" data-action="back" aria-label="Voltar às opções">${icons.back}</button>
+      <button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button>
       <h1>${state.mode === "movimentos" ? "MOVIMENTOS" : movementLabel(state.mode).toLocaleUpperCase("pt-PT")}</h1>
       ${desktopTabsMarkup()}
       <div class="header-menu movement-header-menu">
