@@ -357,3 +357,11 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 @media(max-width:850px){.batch-allocation-row:has(.batch-remove-allocation){grid-template-columns:30px minmax(0,1fr) 88px}}
 
 .batch-allocation-row:has(.batch-remove-allocation)>.select-control{grid-column:2}
+
+.transfer-stock-list>button,.transfer-selection-footer .primary{padding:12px 20px;border:0;border-radius:14px;box-shadow:0 5px 0 #d0d2d3;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer}
+.transfer-stock-list>button{min-height:58px;background:#8b9093;color:#fff}
+.transfer-selection-footer .primary{background:#ffd600;color:#171717}
+.transfer-stock-list>button:active,.transfer-selection-footer .primary:active{transform:translateY(3px);box-shadow:0 2px 0 #d0d2d3}
+.transfer-stock-list>button:disabled,.transfer-selection-footer .primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.transfer-stock-list>button:focus-visible,.transfer-selection-footer .primary:focus-visible{outline:3px solid #19334a;outline-offset:3px}
+@media(max-width:850px){.transfer-stock-list>button,.transfer-selection-footer .primary{font-size:15px}}
