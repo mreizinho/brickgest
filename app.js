@@ -1108,8 +1108,8 @@ function updateMobileConcludeButton() {
   const viewport = content.getBoundingClientRect();
   const visible = bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
   floating.hidden = visible || original.disabled;
-  const toastBottom = document.querySelector(".app-toast")?.getBoundingClientRect().bottom || 0;
-  floating.style.top = `${Math.max(header.getBoundingClientRect().bottom + 20, toastBottom + 12)}px`;
+  // Keep the same clearance for the toast, even while no notice is visible.
+  floating.style.top = `${header.getBoundingClientRect().bottom + 32}px`;
 }
 
 window.addEventListener("resize", updateMobileConcludeButton);

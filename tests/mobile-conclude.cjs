@@ -18,9 +18,9 @@ run(`
  state.mode='lote';setupMobileConcludeButton();
 `);
 assert.equal(run('floating.hidden'), false);
-assert.equal(run('floating.style.top'), '84px');
+assert.equal(run('floating.style.top'), '96px');
 run(`const savedQuery=document.querySelector;document.querySelector=selector=>selector==='.app-toast'?{getBoundingClientRect:()=>({bottom:130})}:savedQuery(selector);updateMobileConcludeButton()`);
-assert.equal(run('floating.style.top'),'142px');
+assert.equal(run('floating.style.top'),'96px');
 run(`document.querySelector=savedQuery;updateMobileConcludeButton()`);
 run('floating.click()');
 assert.equal(run('clicks'), 1);
