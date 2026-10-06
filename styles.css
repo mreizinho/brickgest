@@ -338,7 +338,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .login-required{top:auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:140}
 
 .mobile-conclude-button{display:none}
-@media(max-width:850px){.mobile-conclude-button{position:fixed;right:max(14px,env(safe-area-inset-right));z-index:45;display:block;border:0;border-radius:18px;padding:12px 18px;background:#ffd500;color:#111;font-size:14px;font-weight:800;letter-spacing:.6px;box-shadow:0 4px 12px #0003;cursor:pointer}.mobile-conclude-button[hidden]{display:none}.mobile-conclude-button:focus-visible{outline:3px solid #19334a;outline-offset:3px}}
+@media(max-width:850px){.mobile-conclude-button{position:fixed;right:max(14px,env(safe-area-inset-right));z-index:45;display:block;border:0;border-radius:12px;padding:12px 18px;background:#ffd500;color:#111;font-size:14px;font-weight:800;letter-spacing:.6px;box-shadow:0 4px 12px #0003;cursor:pointer}.mobile-conclude-button[hidden]{display:none}.mobile-conclude-button:focus-visible{outline:3px solid #19334a;outline-offset:3px}}
 
 .batch-allocations{padding:10px 12px 12px}
 .batch-allocation-row{grid-template-columns:minmax(0,1fr) 112px;gap:14px}
