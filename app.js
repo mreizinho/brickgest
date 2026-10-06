@@ -564,10 +564,13 @@ function homeButton(mode, label, image, interactive = true) {
   return `<button type="button" class="sheets-open-button home-action home-action-${mode}"${interactive ? ` data-mode="${mode}"` : ""}${disabled ? " disabled" : ""}>${label}<img src="public/options/${image}.svg" alt="" width="28" height="28"></button>`;
 }
 
-function optionsMarkup() {
+function loginNoticeMarkup() {
   const loginTitle = state.loginError || (state.checkingCredentials ? "A verificar credenciais..." : "Inicia sessão Google");
   const loginHelp = state.loginError ? "Toca aqui para tentar novamente." : state.checkingCredentials ? "A confirmar o acesso ao Google Sheets." : "A sessão Google só é necessária para consultar ou guardar dados no inventário.";
-  const login = state.loggedIn ? "" : `<button type="button" class="login-required ${state.loginError ? "has-error" : ""}" data-action="login">${icons.lock}<span><strong>${escapeHtml(loginTitle)}</strong><small>${loginHelp}</small></span></button>`;
+  return state.loggedIn ? "" : `<button type="button" class="login-required ${state.loginError ? "has-error" : ""}" data-action="login">${icons.lock}<span><strong>${escapeHtml(loginTitle)}</strong><small>${loginHelp}</small></span></button>`;
+}
+
+function optionsMarkup() {
   return `<section class="workspace sheets-page home-page" id="inventario">
     <article class="sheets-explainer home-explainer">
       <div class="sheets-visual home-visual"><img src="public/icon-brickgest.png?v=20261002-updated-4" alt="Logótipo BrickGEST"></div>
@@ -575,7 +578,6 @@ function optionsMarkup() {
         <p class="sheets-eyebrow">INÍCIO</p>
         <h2>O que queres fazer hoje?</h2>
         <p>Escolhe uma opção.</p>
-        ${login}
         <div class="home-actions">
           ${homeButton("lote", "MOVIMENTOS", "lote")}
           ${homeButton("consulta", "CONSULTAS", "consultar")}
@@ -1049,7 +1051,7 @@ function render() {
     app.querySelector(".app-toast")?.remove();
     if (notice) app.insertAdjacentHTML("beforeend", notice);
   } else {
-    app.innerHTML = `${headerMarkup()}<div class="app-content">${content}</div>${state.scannerOpen ? scannerMarkup() : ""}${notice}${customArticleMarkup()}`;
+    app.innerHTML = `${headerMarkup()}<div class="app-content">${content}</div>${state.scannerOpen ? scannerMarkup() : ""}${notice}${!state.mode ? loginNoticeMarkup() : ""}${customArticleMarkup()}`;
   }
   const appContent = document.querySelector(".app-content");
   appContent?.addEventListener("scroll", updateLotMobileHeaderSummary, { passive: true });

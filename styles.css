@@ -335,3 +335,4 @@ html,body{height:100%;overflow:hidden}
 input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement-field="cost"]::-webkit-outer-spin-button,input[data-batch-cost-code]::-webkit-inner-spin-button,input[data-batch-cost-code]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}input[data-movement-field="cost"],input[data-batch-cost-code]{-moz-appearance:textfield;appearance:textfield}.movement-fields>.movement-supplier-doc{grid-column:span 3}@media(max-width:850px){.movement-fields>.movement-supplier-doc{grid-column:1/-1}}
 @media(max-width:850px){.sheets-visual,.home-visual{height:135px;min-height:135px}}
 @media(min-width:851px){.sheets-explainer{height:520px}.sheets-copy{min-height:0;overflow:auto}.sheets-visual{min-height:0;height:100%}.sheets-visual img{max-height:100%;object-fit:contain}}
+.login-required{top:max(16px,env(safe-area-inset-top));bottom:auto;z-index:140}
