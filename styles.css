@@ -344,8 +344,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-allocation-row{grid-template-columns:minmax(0,1fr) 112px;gap:14px}
 .batch-allocation-row>.select-control{grid-column:1;grid-row:1;min-width:0}
 .batch-allocation-row>.batch-inline-qty{grid-column:2;grid-row:1}
-.batch-allocation-row:has(.batch-remove-allocation){grid-template-columns:38px minmax(0,1fr) 112px}
-.batch-allocation-row:has(.batch-remove-allocation)>.select-control{grid-column:2}
-.batch-allocation-row:has(.batch-remove-allocation)>.batch-inline-qty{grid-column:3}
-.batch-allocation-row>.batch-remove-allocation{grid-column:1;grid-row:1}
-@media(max-width:850px){.batch-allocations{padding:9px 7px 10px}.batch-allocation-row{grid-template-columns:minmax(0,1fr) 88px;gap:8px}.batch-allocation-row:has(.batch-remove-allocation){grid-template-columns:30px minmax(0,1fr) 88px}}
+.batch-allocation-row>.batch-remove-allocation{grid-column:1;grid-row:2;justify-self:start}
+@media(max-width:850px){.batch-allocations{padding:9px 7px 10px}.batch-allocation-row{grid-template-columns:minmax(0,1fr) 88px;gap:8px}}
