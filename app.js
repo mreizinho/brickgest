@@ -2731,7 +2731,7 @@ async function openBarcodeScanner(addHistory = true) {
                   const added = await addCodeToBatch(ean, true);
                   updateScannerStatus(added
                     ? `${found.code} adicionado · ${batchUnitCount()} un. na leitura. Aponte para o próximo código.`
-                    : `Não foi possível adicionar ${found.code}. Aponte para outro código.`);
+                    : `Não foi possível adicionar ${found.code}.`);
                   if (added) {
                     playScannerConfirmationBeep();
                     if (navigator.vibrate) navigator.vibrate(45);
@@ -2742,7 +2742,7 @@ async function openBarcodeScanner(addHistory = true) {
                   }
                   if (!added && batchScannerStockWarning) {
                     const warning = batchScannerStockWarning;
-                    updateScannerStatus(`${found.code}: ${warning} Aponte para outro código.`);
+                    updateScannerStatus(`${found.code}: ${warning}`);
                     showScannerSuccessOverlay(() => {
                       if (state.scannerOpen && session === barcodeSession) barcodeScanTimer = window.setTimeout(scanFrame, 140);
                     }, warning);
