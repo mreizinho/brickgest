@@ -1064,8 +1064,52 @@ function render() {
   const appContent = document.querySelector(".app-content");
   appContent?.addEventListener("scroll", updateLotMobileHeaderSummary, { passive: true });
   updateLotMobileHeaderSummary();
+  setupMobileConcludeButton();
   renderBatchKeypadWindow();
 }
+
+let mobileConcludeObserver = null;
+
+function setupMobileConcludeButton() {
+  mobileConcludeObserver?.disconnect();
+  document.querySelector(".mobile-conclude-button")?.remove();
+  const content = document.querySelector(".app-content");
+  const original = content?.querySelector?.('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"]');
+  if (!isBatchMode() || !original || !window.IntersectionObserver) return;
+  const floating = document.createElement("button");
+  floating.type = "button";
+  floating.className = "mobile-conclude-button";
+  floating.textContent = "CONCLUIR";
+  floating.hidden = true;
+  // Forward to the real button so validation and disabled states remain identical.
+  floating.addEventListener("click", () => original.click());
+  document.querySelector("#app").append(floating);
+  mobileConcludeObserver = new window.IntersectionObserver(() => {
+    updateMobileConcludeButton();
+  }, { root: content, threshold: [0, 1] });
+  mobileConcludeObserver.observe(original);
+  updateMobileConcludeButton();
+}
+
+function updateMobileConcludeButton() {
+  const floating = document.querySelector(".mobile-conclude-button");
+  if (!floating) return;
+  const content = document.querySelector(".app-content");
+  const original = content?.querySelector('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"]');
+  const header = document.querySelector(".lot-mobile-header");
+  const mobile = window.matchMedia("(max-width:850px)").matches;
+  if (!original || !header || !mobile || state.scannerOpen || state.customArticle) {
+    floating.hidden = true;
+    return;
+  }
+  const bounds = original.getBoundingClientRect();
+  const viewport = content.getBoundingClientRect();
+  const visible = bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
+  floating.hidden = visible || original.disabled;
+  floating.style.top = `${header.getBoundingClientRect().bottom + 10}px`;
+}
+
+window.addEventListener("resize", updateMobileConcludeButton);
 
 function updateLotMobileHeaderSummary() {
   const title = document.querySelector("[data-lot-mobile-title]");
