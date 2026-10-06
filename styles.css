@@ -381,3 +381,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .transfer-selection-page .batch-heading>p{padding-right:64px;min-height:24px}
 .transfer-selection-page .transfer-selection-title{padding-right:64px}
 @media(max-width:850px){.transfer-selection-page .transfer-barcode-button{top:16px;right:16px}}
+
+.camera-scan-warning>span{color:#b77500;border-color:#e8a900;background:#fff7dc}.camera-scan-warning>span svg{display:block;width:62px;height:62px}
