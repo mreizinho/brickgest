@@ -46,3 +46,4 @@ python -m http.server 3000
 ```
 
 Depois aceda a `http://localhost:3000/`.
+Nas saídas, os destinos são Colecção, Peças, Vault e Venda. Não há escolha de factura: em cada localização escolhida, retira primeiro stock sem factura e depois com factura. Quando ambos são usados, grava linhas separadas em Movimentos para preservar os saldos e custos de cada grupo.

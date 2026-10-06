@@ -30,6 +30,15 @@ assert.equal(run(`inventoryCosts([...separated,noInvoice(-1,20)],'Sem factura').
 assert.equal(run(`inventoryCosts([noInvoice(2,0),noInvoice(2,10)],'Sem factura').get('100').cost`),5);
 assert.equal(run(`locationStockFromRows(separated,'100','Sem factura')[0].stock`),1);
 assert.throws(()=>run(`requireInvoice({invoice:''})`),/INVOICE_REQUIRED/);
+run(`const billed=movement(4,10);billed[7]='A';const mixed=[billed,noInvoice(2,20)];const split=splitExitAllocations(mixed,'100',[{storage:'A',quantity:3}]);`);
+assert.equal(run(`split[0].group`),'Sem factura');
+assert.equal(run(`split[0].quantity`),2);
+assert.equal(run(`split[1].group`),'Com factura');
+assert.equal(run(`split[1].quantity`),1);
+assert.equal(run(`split[1].cost`),10);
+run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'saida',phase:'conditions'};`);
+assert.ok(!run(`batchConditionsMarkup().includes('data-batch-field="invoice"')`));
+assert.ok(run(`batchConditionsMarkup().includes('Colecção') && batchConditionsMarkup().includes('Vault') && batchConditionsMarkup().includes('Venda')`));
 (async()=>{
  run(`state.accessToken='test';state.userEmail='test@example.com';state.selected={code:'100',name:'Test'};
  let requests=[];ensureCostColumn=async()=>{};loadMovementStockRows=async()=>separated;

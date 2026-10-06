@@ -702,7 +702,7 @@ function foundMarkup() {
   const memberSelected = state.mode === "saida" && state.movementForm.origin === "Membro";
   const obsRequired = memberSelected || (state.mode === "saida" && state.movementForm.origin === "Outro");
   const originField = state.mode === "transferencia" ? "" : state.mode === "saida"
-    ? `<label><span>Destino <b aria-hidden="true">*</b></span><div class="select-control"><select name="origin" data-movement-field="origin" required><option value=""${state.movementForm.origin ? "" : " selected"}>Selecionar…</option>${["Espólio", "Membro", "Peças"].map(option => `<option value="${option}"${state.movementForm.origin === option ? " selected" : ""}>${option}</option>`).join("")}<hr><option value="Outro"${state.movementForm.origin === "Outro" ? " selected" : ""}>Outro</option></select><span class="select-arrow" aria-hidden="true">▾</span></div></label>`
+    ? `<label><span>Destino <b aria-hidden="true">*</b></span><div class="select-control"><select name="origin" data-movement-field="origin" required><option value=""${state.movementForm.origin ? "" : " selected"}>Selecionar…</option>${["Colecção", "Peças", "Vault", "Venda"].map(option => `<option value="${option}"${state.movementForm.origin === option ? " selected" : ""}>${option}</option>`).join("")}</select><span class="select-arrow" aria-hidden="true">▾</span></div></label>`
     : `<label><span>Origem <b aria-hidden="true">*</b></span><input type="text" name="origin" data-movement-field="origin" value="${escapeHtml(state.movementForm.origin)}" required autocomplete="off"></label>`;
   const creatingStorage = state.movementForm.storageChoice === "__other__";
   const storageOptions = state.storageOptions.map(storage => `<option value="${escapeHtml(storage)}"${state.movementForm.storageChoice === storage ? " selected" : ""}>${escapeHtml(storage)}</option>`).join("");
@@ -716,7 +716,7 @@ function foundMarkup() {
       <label><span><span id="movement-obs-label">${memberSelected ? "Nome do Membro" : "Obs"}</span> <b id="movement-obs-required" aria-hidden="true"${obsRequired ? "" : " hidden"}>*</b></span><input id="movement-obs" type="text" name="obs" data-movement-field="obs" value="${escapeHtml(state.movementForm.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>
       ${storageField}
       ${quantityField}
-      ${invoiceField(state.movementForm)}
+      ${state.mode === "saida" ? "" : invoiceField(state.movementForm)}
       ${state.mode === "entrada" ? `<label class="movement-cost"><span>Valor unitário (€) <b>*</b></span><input type="number" min="0" step="0.01" inputmode="decimal" data-movement-field="cost" value="${escapeHtml(state.movementForm.cost ?? "")}" required></label>` : ""}
       ${locationAllocationMarkup()}
     </div>
@@ -1009,7 +1009,7 @@ function batchConditionsMarkup() {
   const memberSelected = isExit && form.origin === "Membro";
   const obsRequired = isExit && (memberSelected || form.origin === "Outro");
   const origin = state.batch.movementType === "transferencia" ? "" : isExit
-    ? `<label><span>Destino <b>*</b></span><div class="select-control"><select data-batch-field="origin" required><option value="">Selecionar…</option>${["Espólio", "Membro", "Peças"].map(option => `<option value="${option}"${form.origin === option ? " selected" : ""}>${option}</option>`).join("")}<hr><option value="Outro"${form.origin === "Outro" ? " selected" : ""}>Outro</option></select><span class="select-arrow">▾</span></div></label>`
+    ? `<label><span>Destino <b>*</b></span><div class="select-control"><select data-batch-field="origin" required><option value="">Selecionar…</option>${["Colecção", "Peças", "Vault", "Venda"].map(option => `<option value="${option}"${form.origin === option ? " selected" : ""}>${option}</option>`).join("")}</select><span class="select-arrow">▾</span></div></label>`
     : `<label><span>Origem <b>*</b></span><input data-batch-field="origin" value="${escapeHtml(form.origin)}" required autocomplete="off"></label>`;
   const creatingStorage = form.storageChoice === "__other__";
   const storages = state.storageOptions.map(storage => `<option value="${escapeHtml(storage)}"${form.storageChoice === storage ? " selected" : ""}>${escapeHtml(storage)}</option>`).join("");
@@ -1017,7 +1017,7 @@ function batchConditionsMarkup() {
   const inventory = isInventoryMode();
   return `<section class="workspace batch-page"><section class="batch-panel batch-conditions-panel">
     <div class="batch-heading"><p>CONCLUIR ${inventory ? "INVENTÁRIO" : movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")}</p><h2>Condições comuns</h2><span>Serão aplicadas a ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"} deste ${inventory ? "inventário" : "lote"}.</span></div>
-    <div class="batch-condition-fields">${inventory ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
+    <div class="batch-condition-fields">${inventory || isExit ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
     ${!isExit && state.batch.movementType !== "transferencia" && !inventory ? state.batch.items.map(item => `<label><span>${escapeHtml(item.code)} · ${escapeHtml(item.name)} — Valor unitário (€) <b>*</b></span><input type="number" min="0" step="0.01" inputmode="decimal" data-batch-cost-code="${escapeHtml(item.code)}" value="${escapeHtml(item.cost ?? "")}" required></label>`).join("") : ""}</div>
     <p class="batch-id">BatchID: ${escapeHtml(state.batch.id)}</p>
     <div class="batch-actions"><button type="button" class="secondary" data-action="batch-review">VOLTAR</button><button type="button" class="primary" data-action="batch-submit"${state.batch.saving ? " disabled" : ""}>${state.batch.saving ? "A REGISTAR…" : `CONCLUIR ${inventory ? "INVENTÁRIO" : "LOTE"}`}</button></div>
@@ -1546,7 +1546,8 @@ function locationStockFromRows(rows, setNumber, group = null) {
 }
 
 async function getLocationStock(setNumber) {
-  const group = isBatchMode() ? state.batch.form.invoice : state.movementForm.invoice;
+  const type = isBatchMode() ? state.batch.movementType : state.mode;
+  const group = type === "saida" ? null : isBatchMode() ? state.batch.form.invoice : state.movementForm.invoice;
   return locationStockFromRows(await loadMovementStockRows(), setNumber, group || null);
 }
 
@@ -1933,10 +1934,28 @@ async function appendTransferMovements(items, form, transferId) {
   return response.json();
 }
 
+function splitExitAllocations(rows, code, allocations) {
+  const groups = ["Sem factura", "Com factura"];
+  const stocks = groups.map(group => locationStockFromRows(rows, code, group));
+  const costs = groups.map(group => inventoryCosts(rows, group).get(String(code))?.cost ?? "");
+  return allocations.flatMap(allocation => {
+    let remaining = allocation.quantity;
+    const result = [];
+    groups.forEach((group, index) => {
+      const available = stocks[index].find(location => location.storage === allocation.storage)?.stock || 0;
+      const quantity = Math.min(remaining, available);
+      if (quantity > 0) result.push({...allocation, quantity, group, cost:costs[index]});
+      remaining -= quantity;
+    });
+    if (remaining > 0) throw new Error("LOCATION_STOCK_CHANGED");
+    return result;
+  });
+}
+
 async function appendBatchMovements() {
   if (state.batch.movementType === "transferencia") return appendTransferMovements(state.batch.items, state.batch.form, state.batch.id);
   if (!state.accessToken || !state.userEmail || !state.batch.items.length) throw new Error("NOT_AUTHENTICATED");
-  const group = isInventoryMode() ? null : requireInvoice(state.batch.form);
+  const group = isInventoryMode() || state.batch.movementType === "saida" ? null : requireInvoice(state.batch.form);
   if (!isInventoryMode() && state.batch.movementType === "entrada") state.batch.items.forEach(item => entryCost(item.cost));
   const targetSheetName = isInventoryMode() ? await prepareInventorySheet() : "Movimentos";
   const alreadyRecorded = await ensureBatchColumnAndCheckDuplicate(state.batch.id, targetSheetName);
@@ -1969,12 +1988,13 @@ async function appendBatchMovements() {
         throw error;
       }
     }
+    if (isExit) storageQuantities = splitExitAllocations(stockRows, item.code, storageQuantities);
     storageQuantities.forEach(allocation => rows.push([
       createMovementId(), timestamp, item.ean, item.code, item.name, item.year, item.theme, item.subTheme || "",
       form.origin.trim(), item.imageUrl, allocation.storage, allocation.quantity * (isExit ? -1 : 1), state.userEmail,
       item.rrp || "", form.obs.trim(), state.batch.id,
-      isInventoryMode() ? costs.get(String(item.code))?.cost ?? "Custo por apurar" : group === "Com factura" ? isExit ? costs.get(String(item.code))?.cost ?? "" : entryCost(item.cost) : "",
-      isInventoryMode() ? costsWithoutInvoice.get(String(item.code))?.cost ?? "Custo por apurar" : group === "Sem factura" ? isExit ? costs.get(String(item.code))?.cost ?? "" : entryCost(item.cost) : "", group || "Contagem", supplierDocumentValue(form),
+      isInventoryMode() ? costs.get(String(item.code))?.cost ?? "Custo por apurar" : (allocation.group || group) === "Com factura" ? isExit ? allocation.cost : entryCost(item.cost) : "",
+      isInventoryMode() ? costsWithoutInvoice.get(String(item.code))?.cost ?? "Custo por apurar" : (allocation.group || group) === "Sem factura" ? isExit ? allocation.cost : entryCost(item.cost) : "", allocation.group || group || "Contagem", supplierDocumentValue(form),
     ]));
   }
   const range = encodeURIComponent(`${quoteSheetName(targetSheetName)}!A:T`);
@@ -1993,13 +2013,13 @@ async function appendBatchMovements() {
 
 async function appendMovement() {
   if (!state.selected || !state.accessToken || !state.userEmail) throw new Error("NOT_AUTHENTICATED");
-  const group = requireInvoice(state.movementForm);
+  const group = state.mode === "saida" ? null : requireInvoice(state.movementForm);
   if (state.mode === "transferencia") {
     state.movementForm.transferId ||= createMovementId();
     return appendTransferMovements([{ ...state.selected, qty: Number(state.movementForm.qty), allocations: state.movementForm.allocations }], state.movementForm, state.movementForm.transferId);
   }
   const stockRows = state.mode === "saida" ? await loadMovementStockRows() : [];
-  const cost = state.mode === "saida" ? inventoryCosts(stockRows, group).get(String(state.selected.code))?.cost ?? "" : entryCost(state.movementForm.cost);
+  const cost = state.mode === "saida" ? "" : entryCost(state.movementForm.cost);
   await ensureCostColumn();
   const requestedQuantity = Math.max(1, Number.parseInt(state.movementForm.qty, 10) || 1);
   let storageQuantities = [{ storage: state.movementForm.storage.trim(), quantity: requestedQuantity }];
@@ -2022,6 +2042,7 @@ async function appendMovement() {
     });
     if (changedLocation) throw new Error("LOCATION_STOCK_CHANGED");
   }
+  if (state.mode === "saida") storageQuantities = splitExitAllocations(stockRows, state.selected.code, storageQuantities);
   const timestamp = createMovementTimestamp();
   const rows = storageQuantities.map(allocation => [
       createMovementId(),
@@ -2040,8 +2061,8 @@ async function appendMovement() {
       state.selected.rrp || "",
       state.movementForm.obs.trim(),
       "",
-      group === "Com factura" ? cost : "",
-      group === "Sem factura" ? cost : "", group, supplierDocumentValue(state.movementForm),
+      (allocation.group || group) === "Com factura" ? allocation.cost ?? cost : "",
+      (allocation.group || group) === "Sem factura" ? allocation.cost ?? cost : "", allocation.group || group, supplierDocumentValue(state.movementForm),
     ]);
   const range = encodeURIComponent("Movimentos!A:T");
   const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
