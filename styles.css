@@ -346,3 +346,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-allocation-row>.batch-inline-qty{grid-column:2;grid-row:1}
 .batch-allocation-row>.batch-remove-allocation{grid-column:1;grid-row:2;justify-self:start}
 @media(max-width:850px){.batch-allocations{padding:9px 7px 10px}.batch-allocation-row{grid-template-columns:minmax(0,1fr) 88px;gap:8px}}
+
+.batch-remove-item,.batch-remove-allocation{position:relative;display:grid;place-items:center;color:transparent;font-size:0;line-height:0}
+.batch-remove-allocation::before,.batch-remove-allocation::after{content:"";position:absolute;left:50%;top:50%;width:15px;height:2px;border-radius:2px;background:#8b3935;transform:translate(-50%,-50%) rotate(45deg)}
+.batch-remove-allocation::after{transform:translate(-50%,-50%) rotate(-45deg)}
+@media(max-width:850px){.batch-remove-allocation::before,.batch-remove-allocation::after{width:13px}}
