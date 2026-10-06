@@ -44,6 +44,16 @@ assert.ok(run('batchMarkup().includes("100") && batchMarkup().includes("200")'))
 run(`state.batch.phase='scan'`);
 assert.ok(!run('batchMarkup().includes("SCANNER")'));
 assert.equal(run(`consultationItems([['300','','','','','','','A',1],['300','','','','','','','A',-1]]).length`),0);
+run(`const mixedStock=[['100','','','','','','','A',2,'','','','',10,'','Com factura'],['100','','','','','','','A',1,'','','','','',7,'Sem factura']];
+ const mixedRows=transferRows([{code:'100',qty:3,allocations:{A:3}}],{storage:'C'},mixedStock,'mixed','time','user');`);
+assert.equal(run('mixedRows.length'),4);
+assert.equal(run('mixedRows[0][18]'),'Sem factura');
+assert.equal(run('mixedRows[0][11]'),-1);
+assert.equal(run('mixedRows[0][17]'),7);
+assert.equal(run('mixedRows[2][18]'),'Com factura');
+assert.equal(run('mixedRows[2][11]'),-2);
+assert.equal(run('mixedRows[2][16]'),10);
+assert.ok(run(`!batchConditionsMarkup().includes('data-batch-field="invoice"')`));
 (async () => {
   run(`let requests=[]; ensureBatchColumnAndCheckDuplicate=async()=>false; loadMovementStockRows=async()=>stock;ensureCostColumn=async()=>{};
     fetch=async(url,options)=>{requests.push({url,body:JSON.parse(options.body)});return {ok:true,status:200,json:async()=>({})}};`);

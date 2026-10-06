@@ -720,7 +720,7 @@ function foundMarkup() {
       <label><span><span id="movement-obs-label">${memberSelected ? "Nome do Membro" : "Obs"}</span> <b id="movement-obs-required" aria-hidden="true"${obsRequired ? "" : " hidden"}>*</b></span><input id="movement-obs" type="text" name="obs" data-movement-field="obs" value="${escapeHtml(state.movementForm.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>
       ${storageField}
       ${quantityField}
-      ${state.mode === "saida" ? "" : invoiceField(state.movementForm)}
+      ${usesSourceStock(state.mode) ? "" : invoiceField(state.movementForm)}
       ${state.mode === "entrada" ? `<label class="movement-cost"><span>Valor unitário (€) <b>*</b></span><input type="number" min="0" step="0.01" inputmode="decimal" data-movement-field="cost" value="${escapeHtml(state.movementForm.cost ?? "")}" required></label>` : ""}
       ${locationAllocationMarkup()}
     </div>
@@ -1029,7 +1029,7 @@ function batchConditionsMarkup() {
   const inventory = isInventoryMode();
   return `<section class="workspace batch-page"><section class="batch-panel batch-conditions-panel">
     <div class="batch-heading"><p>CONCLUIR ${inventory ? "INVENTÁRIO" : movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")}</p><h2>${batchUnitCount() > 1 ? "Condições comuns" : "Condições"}</h2><span>Serão aplicadas a ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"} deste ${batchSubjectLabel()}.</span></div>
-    <div class="batch-condition-fields">${inventory || isExit ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
+    <div class="batch-condition-fields">${inventory || usesSourceStock(state.batch.movementType) ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
     ${!isExit && state.batch.movementType !== "transferencia" && !inventory ? state.batch.items.map(item => `<label><span>${escapeHtml(item.code)} · ${escapeHtml(item.name)} — Valor unitário (€) <b>*</b></span><input type="number" min="0" step="0.01" inputmode="decimal" data-batch-cost-code="${escapeHtml(item.code)}" value="${escapeHtml(item.cost ?? "")}" required></label>`).join("") : ""}</div>
     <p class="batch-id">BatchID: ${escapeHtml(state.batch.id)}</p>
     <div class="batch-actions"><button type="button" class="secondary" data-action="batch-review">VOLTAR</button><button type="button" class="primary" data-action="batch-submit"${state.batch.saving ? " disabled" : ""}>${state.batch.saving ? "A REGISTAR…" : `CONCLUIR ${batchSubjectLabel().toLocaleUpperCase("pt-PT")}`}</button></div>
@@ -1604,7 +1604,7 @@ function locationStockFromRows(rows, setNumber, group = null) {
 
 async function getLocationStock(setNumber) {
   const type = isBatchMode() ? state.batch.movementType : state.mode;
-  const group = type === "saida" ? null : isBatchMode() ? state.batch.form.invoice : state.movementForm.invoice;
+  const group = usesSourceStock(type) ? null : isBatchMode() ? state.batch.form.invoice : state.movementForm.invoice;
   return locationStockFromRows(await loadMovementStockRows(), setNumber, group || null);
 }
 
@@ -1830,8 +1830,9 @@ async function prepareInventorySheet() {
 
 // Each source produces a balanced pair; all pairs are appended in one request.
 function transferRows(items, form, stockRows, transferId, timestamp, userEmail) {
-  const group = requireInvoice(form);
-  const costs = inventoryCosts(stockRows, group);
+  const groups = ["Sem factura", "Com factura"];
+  const costs = new Map(groups.map(group => [group, inventoryCosts(stockRows, group)]));
+  const reservedGroups = new Map();
   const destination = String(form.storage || "").trim();
   if (!destination) throw new Error("TRANSFER_DESTINATION");
   const rows = [];
@@ -1841,7 +1842,7 @@ function transferRows(items, form, stockRows, transferId, timestamp, userEmail) 
     if (!allocations.length || allocations.some(({ storage, qty }) => !storage.trim() || !Number.isSafeInteger(qty) || qty <= 0) ||
         !Number.isSafeInteger(Number(item.qty)) || Number(item.qty) <= 0 ||
         allocations.reduce((sum, allocation) => sum + allocation.qty, 0) !== Number(item.qty)) throw new Error("INVALID_ALLOCATION");
-    const locations = locationStockFromRows(stockRows, item.code, group);
+    const locations = locationStockFromRows(stockRows, item.code, null);
     for (const { storage, qty } of allocations) {
       if (storage.trim().toLocaleLowerCase("pt-PT") === destination.toLocaleLowerCase("pt-PT")) throw new Error("TRANSFER_DESTINATION");
       const key = JSON.stringify([String(item.code), storage]);
@@ -1853,11 +1854,22 @@ function transferRows(items, form, stockRows, transferId, timestamp, userEmail) 
       }
       reserved.set(key, total);
       const obs = [`Transferência: ${storage} → ${destination}`, String(form.obs || "").trim()].filter(Boolean).join(" · ");
-      const row = (location, quantity) => [createMovementId(), timestamp, item.ean, item.code, item.name, item.year, item.theme, item.subTheme || "",
-        "Transferência", item.imageUrl, location, quantity, userEmail, item.rrp || "", obs, transferId,
-        group === "Com factura" ? costs.get(String(item.code))?.cost ?? "" : "",
-        group === "Sem factura" ? costs.get(String(item.code))?.cost ?? "" : "", group, supplierDocumentValue(form)];
-      rows.push(row(storage, -qty), row(destination, qty));
+      let remaining = qty;
+      for (const group of groups) {
+        const groupKey = JSON.stringify([String(item.code), storage, group]);
+        const groupStock = locationStockFromRows(stockRows, item.code, group).find(location => location.storage === storage)?.stock || 0;
+        const used = reservedGroups.get(groupKey) || 0;
+        const quantity = Math.min(remaining, Math.max(0, groupStock - used));
+        if (!quantity) continue;
+        const cost = costs.get(group).get(String(item.code))?.cost ?? "";
+        const row = (location, amount) => [createMovementId(), timestamp, item.ean, item.code, item.name, item.year, item.theme, item.subTheme || "",
+          "Transferência", item.imageUrl, location, amount, userEmail, item.rrp || "", obs, transferId,
+          group === "Com factura" ? cost : "", group === "Sem factura" ? cost : "", group, supplierDocumentValue(form)];
+        rows.push(row(storage, -quantity), row(destination, quantity));
+        reservedGroups.set(groupKey, used + quantity);
+        remaining -= quantity;
+      }
+      if (remaining) throw new Error("LOCATION_STOCK_CHANGED");
     }
   }
   return rows;
@@ -2073,7 +2085,7 @@ async function appendBatchMovements() {
 
 async function appendMovement() {
   if (!state.selected || !state.accessToken || !state.userEmail) throw new Error("NOT_AUTHENTICATED");
-  const group = state.mode === "saida" ? null : requireInvoice(state.movementForm);
+  const group = usesSourceStock(state.mode) ? null : requireInvoice(state.movementForm);
   if (state.mode === "transferencia") {
     state.movementForm.transferId ||= createMovementId();
     return appendTransferMovements([{ ...state.selected, qty: Number(state.movementForm.qty), allocations: state.movementForm.allocations }], state.movementForm, state.movementForm.transferId);
