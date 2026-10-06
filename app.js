@@ -1009,7 +1009,7 @@ function batchReviewMarkup() {
       <div class="batch-item-main"><button type="button" class="batch-remove-item" data-action="batch-item-remove" data-batch-code="${escapeHtml(item.code)}" aria-label="Remover ${escapeHtml(item.code)}">×</button>${item.imageUrl ? `<button type="button" class="batch-item-image batch-image-button" data-action="batch-image" data-batch-code="${escapeHtml(item.code)}" aria-label="Ver imagem de ${escapeHtml(item.code)}"><img src="${escapeHtml(item.imageUrl)}" alt=""></button>` : `<span class="batch-item-image">#</span>`}<span><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme || "")} ${item.year ? `· ${escapeHtml(item.year)}` : ""}</small>${usesSourceStock(state.batch.movementType) ? `<em>Stock disponível: ${item.locations.reduce((total, location) => total + location.stock, 0)}</em>` : ""}</span><div class="batch-inline-qty"><strong>${item.qty}</strong><div><button type="button" data-action="batch-item-increase" data-batch-code="${escapeHtml(item.code)}">▴</button><button type="button" data-action="batch-item-decrease" data-batch-code="${escapeHtml(item.code)}">▾</button></div></div></div>
       ${batchAllocationMarkup(item)}
     </article>`).join("")}</div>
-    <div class="batch-actions"><button type="button" class="secondary" data-action="batch-resume">${state.batch.movementType === "transferencia" ? "SELECIONAR SETS" : "RETOMAR"}</button><button type="button" class="secondary batch-delete-action" data-action="batch-cancel">APAGAR</button><button type="button" class="primary" data-action="batch-conditions">CONCLUIR</button></div>
+    <div class="batch-actions${state.batch.movementType === "transferencia" ? " transfer-review-actions" : ""}">${state.batch.movementType === "transferencia" ? "" : `<button type="button" class="secondary" data-action="batch-resume">${state.batch.movementType === "transferencia" ? "SELECIONAR SETS" : "RETOMAR"}</button><button type="button" class="secondary batch-delete-action" data-action="batch-cancel">APAGAR</button>`}<button type="button" class="primary" data-action="batch-conditions">CONCLUIR</button></div>
   </section></section>`;
 }
 
@@ -1116,9 +1116,10 @@ function updateLotMobileHeaderSummary() {
   if (!title) return;
   const content = document.querySelector(".app-content");
   const summary = document.querySelector(".batch-review-panel .batch-heading span");
+  const selectingTransfers = state.batch.movementType === "transferencia" && Boolean(document.querySelector(".transfer-selection-page"));
   const summaryHasScrolledAway = Boolean(content && summary && summary.getBoundingClientRect().bottom <= content.getBoundingClientRect().top);
   const label = batchModeLabel();
-  title.textContent = summaryHasScrolledAway ? `${label} (${state.batch.items.length} Refs. - ${batchUnitCount()} un.)` : label;
+  title.textContent = (selectingTransfers || summaryHasScrolledAway) ? `${label} (${state.batch.items.length} Refs. - ${batchUnitCount()} un.)` : label;
 }
 
 function waitForMobileSwipeTransition(element) {

@@ -365,3 +365,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .transfer-stock-list>button:disabled,.transfer-selection-footer .primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .transfer-stock-list>button:focus-visible,.transfer-selection-footer .primary:focus-visible{outline:3px solid #19334a;outline-offset:3px}
 @media(max-width:850px){.transfer-stock-list>button,.transfer-selection-footer .primary{font-size:15px}}
+
+.transfer-review-actions{grid-template-columns:1fr}
