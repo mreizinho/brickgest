@@ -812,15 +812,23 @@ function inventoryNameMarkup() {
   </article></section>`;
 }
 
+function batchMovementLabel() {
+  return `${movementLabel(state.batch.movementType)}${batchUnitCount() > 1 ? " em lote" : ""}`;
+}
+
+function batchSubjectLabel() {
+  return isInventoryMode() ? "inventário" : batchUnitCount() > 1 ? "lote" : "movimento";
+}
+
 function batchResumePromptMarkup() {
   const units = batchUnitCount();
   const references = state.batch.items.length;
   const inventory = isInventoryMode();
-  const subject = inventory ? `um inventário “${escapeHtml(inventorySheetTitle(state.batch.sheetName))}”` : `uma ${movementLabel(state.batch.movementType).toLocaleLowerCase("pt-PT")} em lote`;
+  const subject = inventory ? `um inventário “${escapeHtml(inventorySheetTitle(state.batch.sheetName))}”` : `uma ${batchMovementLabel().toLocaleLowerCase("pt-PT")}`;
   return `<section class="workspace batch-page"><section class="batch-panel batch-resume-prompt">
-    <div class="batch-heading"><p>${inventory ? "INVENTÁRIO" : "LOTE"} EM CURSO</p><h2>Existe uma leitura por concluir</h2><span>Encontrámos ${subject} com ${units} ${units === 1 ? "unidade" : "unidades"} e ${references} ${references === 1 ? "referência" : "referências"}.</span></div>
-    <p>Queres continuar a leitura corrente ou apagá-la e começar ${inventory ? "um novo inventário" : "um novo lote"}?</p>
-    <div class="batch-actions"><button type="button" class="secondary batch-view-draft" data-action="batch-view-draft">VER ${inventory ? "INVENTÁRIO" : "LOTE"}</button><button type="button" class="secondary batch-delete-draft" data-action="batch-discard-draft">APAGAR LEITURA</button><button type="button" class="primary" data-action="batch-continue-draft">CONTINUAR</button></div>
+    <div class="batch-heading"><p>${batchSubjectLabel().toLocaleUpperCase("pt-PT")} EM CURSO</p><h2>Existe uma leitura por concluir</h2><span>Encontrámos ${subject} com ${units} ${units === 1 ? "unidade" : "unidades"} e ${references} ${references === 1 ? "referência" : "referências"}.</span></div>
+    <p>Queres continuar a leitura corrente ou apagá-la e começar um novo ${batchSubjectLabel()}?</p>
+    <div class="batch-actions"><button type="button" class="secondary batch-view-draft" data-action="batch-view-draft">VER ${batchSubjectLabel().toLocaleUpperCase("pt-PT")}</button><button type="button" class="secondary batch-delete-draft" data-action="batch-discard-draft">APAGAR LEITURA</button><button type="button" class="primary" data-action="batch-continue-draft">CONTINUAR</button></div>
   </section></section>`;
 }
 
@@ -838,7 +846,7 @@ function batchScanMarkup() {
   const units = batchUnitCount();
   const keypadPoppedOut = isBatchKeypadPoppedOut();
   const keypadSection = keypadPoppedOut ? "" : `
-    <div class="batch-heading"><p>${isInventoryMode() ? `INVENTÁRIO · ${escapeHtml(inventorySheetTitle(state.batch.sheetName))}` : `${movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")} EM LOTE`}</p><h2>Ler conjuntos</h2><span>Cada leitura adiciona uma unidade. A câmara permanece aberta para leituras consecutivas.</span></div>
+    <div class="batch-heading"><p>${isInventoryMode() ? `INVENTÁRIO · ${escapeHtml(inventorySheetTitle(state.batch.sheetName))}` : `${batchMovementLabel().toLocaleUpperCase("pt-PT")}`}</p><h2>Ler ${units > 1 ? "conjuntos" : "conjunto"}</h2><span>Cada leitura adiciona uma unidade. A câmara permanece aberta para leituras consecutivas.</span></div>
     <div class="batch-keypad-shell"><button type="button" class="batch-keypad-popout-button" data-action="batch-keypad-popout" aria-label="Abrir teclado numa janela sempre visível" title="Abrir teclado numa janela sempre visível">${icons.popout}</button><div class="entry-keypad lote batch-keypad">${keypadControlsMarkup("batch-add-code")}</div></div>
     <hr class="batch-keypad-divider">`;
   return `<section class="workspace batch-page"><section class="batch-panel batch-scan-panel${keypadPoppedOut ? " batch-keypad-detached" : ""}">
@@ -994,9 +1002,9 @@ function batchReviewMarkup() {
   for (const item of state.batch.items) {
     if (!item.imageUrl) item.imageUrl = findSet(String(item.code))?.imageUrl || "";
   }
-  const label = isInventoryMode() ? "inventário" : "lote";
+  const label = batchSubjectLabel();
   return `<section class="workspace batch-page"><section class="batch-panel batch-review-panel">
-    <div class="batch-heading"><p>${state.batch.movementType === "transferencia" ? "TRANSFERÊNCIAS" : "LEITURA EM PAUSA"}</p><h2>Rever ${state.batch.movementType === "transferencia" ? "sets selecionados" : label}</h2><span>${state.batch.items.length} ${state.batch.items.length === 1 ? "referência" : "referências"} · ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"}</span></div>
+    <div class="batch-heading"><p>${state.batch.movementType === "transferencia" ? batchMovementLabel().toLocaleUpperCase("pt-PT") : "LEITURA EM PAUSA"}</p><h2>Rever ${state.batch.movementType === "transferencia" ? (batchUnitCount() > 1 ? "sets selecionados" : "set selecionado") : label}</h2><span>${state.batch.items.length} ${state.batch.items.length === 1 ? "referência" : "referências"} · ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"}</span></div>
     <div class="batch-review-list">${[...state.batch.items].reverse().map(item => `<article class="batch-item">
       <div class="batch-item-main">${item.imageUrl ? `<button type="button" class="batch-item-image batch-image-button" data-action="batch-image" data-batch-code="${escapeHtml(item.code)}" aria-label="Ver imagem de ${escapeHtml(item.code)}"><img src="${escapeHtml(item.imageUrl)}" alt=""></button>` : `<span class="batch-item-image">#</span>`}<span><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme || "")} ${item.year ? `· ${escapeHtml(item.year)}` : ""}</small>${usesSourceStock(state.batch.movementType) ? `<em>Stock disponível: ${item.locations.reduce((total, location) => total + location.stock, 0)}</em>` : ""}</span><div class="batch-inline-qty"><strong>${item.qty}</strong><div><button type="button" data-action="batch-item-increase" data-batch-code="${escapeHtml(item.code)}">▴</button><button type="button" data-action="batch-item-decrease" data-batch-code="${escapeHtml(item.code)}">▾</button></div></div><button type="button" class="batch-remove-item" data-action="batch-item-remove" data-batch-code="${escapeHtml(item.code)}" aria-label="Remover ${escapeHtml(item.code)}">×</button></div>
       ${batchAllocationMarkup(item)}
@@ -1018,11 +1026,11 @@ function batchConditionsMarkup() {
   const storage = isExit ? "" : `<label><span>${state.batch.movementType === "transferencia" ? "Localização de destino" : "Local"} <b>*</b></span><div class="select-control"><select data-batch-storage-choice required><option value="">Selecionar…</option>${storages}<hr><option value="__other__"${creatingStorage ? " selected" : ""}>Outro…</option></select><span class="select-arrow">▾</span></div><input id="batch-new-storage" data-batch-field="storage" value="${creatingStorage ? escapeHtml(form.storage) : ""}" placeholder="Nova localização"${creatingStorage ? " required" : " hidden"} autocomplete="off"></label>`;
   const inventory = isInventoryMode();
   return `<section class="workspace batch-page"><section class="batch-panel batch-conditions-panel">
-    <div class="batch-heading"><p>CONCLUIR ${inventory ? "INVENTÁRIO" : movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")}</p><h2>Condições comuns</h2><span>Serão aplicadas a ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"} deste ${inventory ? "inventário" : "lote"}.</span></div>
+    <div class="batch-heading"><p>CONCLUIR ${inventory ? "INVENTÁRIO" : movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")}</p><h2>${batchUnitCount() > 1 ? "Condições comuns" : "Condições"}</h2><span>Serão aplicadas a ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"} deste ${batchSubjectLabel()}.</span></div>
     <div class="batch-condition-fields">${inventory || isExit ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
     ${!isExit && state.batch.movementType !== "transferencia" && !inventory ? state.batch.items.map(item => `<label><span>${escapeHtml(item.code)} · ${escapeHtml(item.name)} — Valor unitário (€) <b>*</b></span><input type="number" min="0" step="0.01" inputmode="decimal" data-batch-cost-code="${escapeHtml(item.code)}" value="${escapeHtml(item.cost ?? "")}" required></label>`).join("") : ""}</div>
     <p class="batch-id">BatchID: ${escapeHtml(state.batch.id)}</p>
-    <div class="batch-actions"><button type="button" class="secondary" data-action="batch-review">VOLTAR</button><button type="button" class="primary" data-action="batch-submit"${state.batch.saving ? " disabled" : ""}>${state.batch.saving ? "A REGISTAR…" : `CONCLUIR ${inventory ? "INVENTÁRIO" : "LOTE"}`}</button></div>
+    <div class="batch-actions"><button type="button" class="secondary" data-action="batch-review">VOLTAR</button><button type="button" class="primary" data-action="batch-submit"${state.batch.saving ? " disabled" : ""}>${state.batch.saving ? "A REGISTAR…" : `CONCLUIR ${batchSubjectLabel().toLocaleUpperCase("pt-PT")}`}</button></div>
   </section></section>`;
 }
 
@@ -3020,7 +3028,7 @@ document.addEventListener("click", async event => {
     return;
   }
   if (action === "batch-cancel") {
-    if (state.batch.items.length && !await confirmRemoval(`Cancelar esta leitura e apagar o rascunho do ${isInventoryMode() ? "inventário" : "lote"}?`)) return;
+    if (state.batch.items.length && !await confirmRemoval(`Cancelar esta leitura e apagar o rascunho do ${batchSubjectLabel()}?`)) return;
     clearBatchDraft();
     Object.assign(state, { mode: null, query: "", selected: null, menuOpen: false, movementNotice: null });
     writeAppHistory("home");
@@ -3040,7 +3048,7 @@ document.addEventListener("click", async event => {
   if (action === "batch-item-remove") {
     const code = event.target.closest("[data-batch-code]")?.dataset.batchCode;
     const item = batchItemByCode(code);
-    if (!item || !await confirmRemoval(`Apagar ${item.code} · ${item.name} do ${isInventoryMode() ? "inventário" : "lote"}?`)) return;
+    if (!item || !await confirmRemoval(`Apagar ${item.code} · ${item.name} do ${batchSubjectLabel()}?`)) return;
     state.batch.items = state.batch.items.filter(item => String(item.code) !== String(code));
     if (!state.batch.items.length) state.batch.phase = "scan";
     persistBatchDraft();
@@ -3103,7 +3111,8 @@ document.addEventListener("click", async event => {
       const inventory = isInventoryMode();
       const inventorySheetName = inventorySheetTitle(state.batch.sheetName);
       const result = await appendBatchMovements();
-      const movementName = movementLabel(state.batch.movementType);
+      const movementName = batchMovementLabel();
+      const subjectName = batchSubjectLabel();
       const units = batchUnitCount();
       if (state.batch.movementType === "entrada") {
         state.lastMovementDefaults = { origin: state.batch.form.origin.trim(), storage: state.batch.form.storage.trim() };
@@ -3111,13 +3120,13 @@ document.addEventListener("click", async event => {
       }
       if (state.batch.movementType === "transferencia") state.storageOptions = sortStorageNames([...state.storageOptions, state.batch.form.storage]);
       clearBatchDraft();
-      Object.assign(state, { mode: null, query: "", selected: null, movementNotice: null, status: inventory ? `Inventário registado em ${inventorySheetName}.` : `${movementName} em lote registada.` });
-      showMovementNotice(result.duplicate ? `Este ${inventory ? "inventário" : "lote"} já estava registado.` : inventory ? `Inventário “${inventorySheetName}” concluído · ${units} un.` : `Lote concluído com sucesso · ${units} un.`, "success");
+      Object.assign(state, { mode: null, query: "", selected: null, movementNotice: null, status: inventory ? `Inventário registado em ${inventorySheetName}.` : `${movementName} registada.` });
+      showMovementNotice(result.duplicate ? `Este ${subjectName} já estava registado.` : inventory ? `Inventário “${inventorySheetName}” concluído · ${units} un.` : `${units > 1 ? "Lote concluído" : "Movimento concluído"} com sucesso · ${units} un.`, "success");
       writeAppHistory("home", true);
     } catch (error) {
       state.batch.saving = false;
       const messages = {
-        NOT_AUTHENTICATED: `Inicia novamente a sessão Google antes de concluir o ${isInventoryMode() ? "inventário" : "lote"}.`,
+        NOT_AUTHENTICATED: `Inicia novamente a sessão Google antes de concluir o ${batchSubjectLabel()}.`,
         AUTH_EXPIRED: "A sessão Google expirou. Inicia sessão novamente.",
         READ_DENIED: "Sem permissão para validar os movimentos.",
         WRITE_DENIED: `Sem permissão para escrever no sheet ${isInventoryMode() ? "do inventário" : "Movimentos"}.`,
@@ -3125,14 +3134,14 @@ document.addEventListener("click", async event => {
         TARGET_SHEET_NOT_FOUND: "Não foi possível encontrar o novo sheet do inventário.",
         INVENTORY_SHEET_EXISTS: "Já existe um sheet com esse nome. Volta a iniciar o inventário com outro nome.",
         TRANSFER_DESTINATION: "Escolhe uma localização de destino diferente de todas as origens.",
-        INVALID_ALLOCATION: "A distribuição por localizações não corresponde à quantidade do lote.",
-        LOCATION_STOCK_CHANGED: `O stock por localização de ${error.setCode || "um conjunto"} foi alterado. Revê o lote.`,
+        INVALID_ALLOCATION: `A distribuição por localizações não corresponde à quantidade do ${batchSubjectLabel()}.`,
+        LOCATION_STOCK_CHANGED: `O stock por localização de ${error.setCode || "um conjunto"} foi alterado. Revê o ${batchSubjectLabel()}.`,
         BATCH_HEADER_CONFLICT: "A coluna P do sheet de destino já tem outro cabeçalho. Deve chamar-se BatchID.",
         INVALID_INVENTORY_SHEET_NAME: error.userMessage || "O nome do sheet não é válido.",
       };
       const message = error.message === "INSUFFICIENT_STOCK"
         ? `Stock insuficiente para ${error.setCode}. Disponível: ${Math.max(0, error.availableStock)}.`
-        : messages[error.message] || (error.message.startsWith("SHEETS_") ? `O Google Sheets recusou a operação (${error.message}).` : `Não foi possível concluir o ${isInventoryMode() ? "inventário" : "lote"}. Tenta novamente.`);
+        : messages[error.message] || (error.message.startsWith("SHEETS_") ? `O Google Sheets recusou a operação (${error.message}).` : `Não foi possível concluir o ${batchSubjectLabel()}. Tenta novamente.`);
       if (isInventoryMode() && error.message === "INVENTORY_SHEET_EXISTS") {
         state.batch.phase = "name";
         persistBatchDraft();

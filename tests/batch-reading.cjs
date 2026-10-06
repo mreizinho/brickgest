@@ -11,6 +11,22 @@ assert.ok(run(`optionsMarkup().includes('public/options/lote.svg')`));
 run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'entrada',phase:'review',items:[{code:'10300',name:'Saved draft',qty:1,imageUrl:''}]};`);
 assert.ok(run(`batchReviewMarkup().includes('https://images.brickset.com/sets/images/10300-1.jpg')`));
 assert.equal(run(`state.batch.items[0].qty`),1);
+for (const type of ['entrada', 'saida', 'transferencia']) {
+ const title = {entrada:'ENTRADA',saida:'SA\u00cdDA',transferencia:'TRANSFER\u00caNCIA'}[type];
+ for (const qty of [0, 1, 2, 1]) {
+  run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'${type}',items:${qty ? `[{code:'10300',name:'Test',qty:${qty},imageUrl:'image',locations:[]}]` : '[]'}};`);
+  const scan = run('batchScanMarkup()');
+  assert.ok(scan.includes(`<p>${title}${qty > 1 ? ' EM LOTE' : ''}</p>`));
+  assert.ok(scan.includes(`<h2>Ler ${qty > 1 ? 'conjuntos' : 'conjunto'}</h2>`));
+  const conditions = run('batchConditionsMarkup()');
+  assert.ok(conditions.includes(`CONCLUIR ${qty > 1 ? 'LOTE' : 'MOVIMENTO'}`));
+  assert.ok(conditions.includes(`<h2>${qty > 1 ? 'Condi\u00e7\u00f5es comuns' : 'Condi\u00e7\u00f5es'}</h2>`));
+  assert.ok(run('batchResumePromptMarkup()').includes(`${qty > 1 ? 'LOTE' : 'MOVIMENTO'} EM CURSO`));
+  if (type !== 'transferencia') assert.ok(run('batchReviewMarkup()').includes(`<h2>Rever ${qty > 1 ? 'lote' : 'movimento'}</h2>`));
+ }
+}
+run(`state.mode='inventario';state.batch={...emptyBatchState(),movementType:'entrada',items:[{code:'10300',qty:1}]};`);
+assert.ok(run('batchConditionsMarkup()').includes('CONCLUIR INVENT\u00c1RIO'));
 run(`const originalRender=render;render=()=>{};persistBatchDraft=()=>{};showMovementNotice=()=>{};
  state.mode='lote';state.batch={...emptyBatchState(),movementType:'saida',phase:'scan'};
  findSet=code=>({code:code==='11111111'?'100':'200',ean:code,name:'Test'});
