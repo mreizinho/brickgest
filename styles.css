@@ -367,3 +367,11 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 @media(max-width:850px){.transfer-stock-list>button,.transfer-selection-footer .primary{font-size:15px}}
 
 .transfer-review-actions{grid-template-columns:1fr}
+
+.transfer-selection-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px}
+.transfer-selection-title h2{margin-bottom:0;min-width:0}
+.transfer-barcode-button{flex:0 0 48px;width:48px;height:48px;display:grid;place-items:center;padding:10px;border:0;border-radius:12px;background:#ffd600;color:#171717;box-shadow:0 4px 0 #d0d2d3;cursor:pointer}
+.transfer-barcode-button svg{width:28px;height:28px}
+.transfer-barcode-button:active{transform:translateY(2px);box-shadow:0 2px 0 #d0d2d3}
+.transfer-barcode-button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.transfer-barcode-button:focus-visible{outline:3px solid #19334a;outline-offset:3px}
