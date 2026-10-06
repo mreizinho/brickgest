@@ -47,11 +47,12 @@ function transferButton(batch = false) {
   return `<button type="button" class="sheets-open-button home-action home-action-transferencia" ${batch ? 'data-action="batch-type" data-batch-type="transferencia"' : 'data-mode="transferencia"'}${REQUIRE_GOOGLE_LOGIN_FOR_NAVIGATION && !state.loggedIn ? " disabled" : ""}>TRANSFERÊNCIAS<span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span></button>`;
 }
 
-const transferSelection = { items: [], loading: false, error: "" };
+const transferSelection = { items: [], loading: false, error: "", authRequired: false };
 
 async function loadTransferSelection() {
   transferSelection.loading = true;
   transferSelection.error = "";
+  transferSelection.authRequired = false;
   render();
   try {
     if (!state.accessToken) throw new Error("AUTH_EXPIRED");
@@ -59,7 +60,8 @@ async function loadTransferSelection() {
     transferSelection.items = consultationItems(rows).map(item => ({ ...item, ...(findSet(item.code) || {}), code: item.code, locations: item.locations, stock: item.stock }));
     state.storageOptions = sortStorageNames([...state.storageOptions, ...transferSelection.items.flatMap(item => item.locations.map(location => location.storage))]);
   } catch (error) {
-    transferSelection.error = error.message === "AUTH_EXPIRED" ? "Inicia sessão Google para consultar os sets em stock." : "Não foi possível carregar o stock. Tenta novamente.";
+    transferSelection.authRequired = error.message === "AUTH_EXPIRED";
+    transferSelection.error = transferSelection.authRequired ? "Inicia sessão Google para consultar os sets em stock." : "Não foi possível carregar o stock. Tenta novamente.";
   }
   transferSelection.loading = false;
   render();
@@ -70,7 +72,7 @@ function transferSelectionMarkup() {
   const selected = new Set(individual ? [transferSelection.singleCode].filter(Boolean) : state.batch.items.map(item => item.code));
   return `<section class="workspace batch-page transfer-selection-page"><section class="batch-panel">
     <div class="batch-heading"><p>${individual ? "TRANSFERÊNCIA INDIVIDUAL" : "TRANSFERÊNCIAS EM LOTE"}</p><h2>${individual ? "Selecionar set em stock" : "Selecionar sets em stock"}</h2><span>${individual ? "Escolhe um set a transferir." : "Escolhe os sets a transferir."} No passo seguinte podes ajustar as quantidades e as localizações de origem.</span></div>
-    <div class="transfer-stock-list">${transferSelection.loading ? '<p role="status">A carregar stock…</p>' : transferSelection.error ? `<p role="alert">${escapeHtml(transferSelection.error)}</p><button class="secondary" data-action="${state.accessToken ? "transfer-reload" : "login"}">${state.accessToken ? "TENTAR NOVAMENTE" : "LOGIN GOOGLE"}</button>` : transferSelection.items.length ? transferSelection.items.map(item => `<label class="transfer-stock-item"><input type="${individual ? "radio" : "checkbox"}" name="transfer-set" data-transfer-code="${escapeHtml(item.code)}"${selected.has(item.code) ? " checked" : ""}><span><strong>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</strong><small>${item.stock} un. · ${item.locations.map(location => `${escapeHtml(location.storage)} (${location.stock})`).join(" · ")}</small></span>${item.imageUrl ? `<img class="transfer-stock-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="" width="72" height="60" loading="lazy">` : `<span class="transfer-stock-thumbnail transfer-stock-placeholder" aria-hidden="true">▦</span>`}</label>`).join("") : '<p>Não há sets em stock para transferir.</p>'}</div>
+    <div class="transfer-stock-list">${transferSelection.loading ? '<p role="status">A carregar stock…</p>' : transferSelection.error ? `<p role="alert">${escapeHtml(transferSelection.error)}</p><button class="secondary" data-action="${state.accessToken && !transferSelection.authRequired ? "transfer-reload" : "login"}">${state.accessToken && !transferSelection.authRequired ? "TENTAR NOVAMENTE" : "LOGIN GOOGLE"}</button>` : transferSelection.items.length ? transferSelection.items.map(item => `<label class="transfer-stock-item"><input type="${individual ? "radio" : "checkbox"}" name="transfer-set" data-transfer-code="${escapeHtml(item.code)}"${selected.has(item.code) ? " checked" : ""}><span><strong>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</strong><small>${item.stock} un. · ${item.locations.map(location => `${escapeHtml(location.storage)} (${location.stock})`).join(" · ")}</small></span>${item.imageUrl ? `<img class="transfer-stock-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="" width="72" height="60" loading="lazy">` : `<span class="transfer-stock-thumbnail transfer-stock-placeholder" aria-hidden="true">▦</span>`}</label>`).join("") : '<p>Não há sets em stock para transferir.</p>'}</div>
     <div class="transfer-selection-footer"><button class="primary" data-action="${individual ? "transfer-single-continue" : "batch-review"}"${!selected.size || transferSelection.loading || transferSelection.error ? " disabled" : ""}>CONTINUAR (${selected.size})</button></div>
   </section></section>`;
 }
@@ -2132,6 +2134,16 @@ async function appendMovement() {
   return response.json();
 }
 
+async function reloadAuthenticatedScreen() {
+  if (state.mode === "consulta" && !state.consultation.loaded) {
+    state.consultation.error = "";
+    await loadConsultationData();
+  }
+  if ((isBatchMode() && state.batch.movementType === "transferencia" && ["select", "scan"].includes(state.batch.phase)) || (state.mode === "transferencia" && !state.selected)) {
+    await loadTransferSelection();
+  }
+}
+
 function clearStoredGoogleToken() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_SCOPE_KEY);
@@ -2202,10 +2214,7 @@ async function requestGoogleAccessToken(prompt, silent = false) {
           state.accessToken = response.access_token;
           googleTokenRefreshPending = false;
           scheduleGoogleTokenRefresh(expiresIn);
-          if (state.mode === "consulta" && !state.consultation.loaded) {
-            state.consultation.error = "";
-            await loadConsultationData();
-          }
+          await reloadAuthenticatedScreen();
           finish(true);
         } catch (error) {
           if (error.message === "AUTH_EXPIRED") clearStoredGoogleToken();
@@ -3725,6 +3734,7 @@ async function restoreSession() {
       state.accessToken = token;
       scheduleGoogleTokenRefresh(expiresAt ? Math.max(120, (expiresAt - Date.now()) / 1000) : 3600);
       state.checkingCredentials = false;
+      await reloadAuthenticatedScreen();
       render();
       return;
     } catch (error) {

@@ -30,6 +30,17 @@ run(`render=()=>{};scheduleGoogleTokenRefresh=()=>{};
   await run('restoreSession()');
   assert.equal(run('state.accessToken'), 'valid-token');
   assert.equal(run('state.loggedIn'), true);
+  run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'transferencia',phase:'select'};
+    let transferReloads=0;loadTransferSelection=async()=>{transferReloads++;transferSelection.error='';transferSelection.authRequired=false};
+    transferSelection.error='Login required';transferSelection.authRequired=true;`);
+  await run('restoreSession()');
+  assert.equal(run('transferReloads'), 1);
+  assert.equal(run('transferSelection.error'), '');
+  run(`transferSelection.error='Expired';transferSelection.authRequired=true;state.accessToken='expired-token'`);
+  assert.ok(run(`transferSelectionMarkup().includes('data-action="login"')`));
+  run(`transferSelection.authRequired=false`);
+  assert.ok(run(`transferSelectionMarkup().includes('data-action="transfer-reload"')`));
+  run(`state.mode=null`);
   // A valid token near expiry should still survive a reload.
   run('seedToken(20)');
   await run('restoreSession()');
