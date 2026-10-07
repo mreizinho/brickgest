@@ -54,6 +54,17 @@ assert.equal(run('mixedRows[2][18]'),'Com factura');
 assert.equal(run('mixedRows[2][11]'),-2);
 assert.equal(run('mixedRows[2][16]'),10);
 assert.ok(run(`!batchConditionsMarkup().includes('data-batch-field="invoice"')`));
+run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'transferencia',phase:'select',items:[{code:'100',qty:1}]};
+ transferSelection.items=[{code:'100',name:'Castle',theme:'Icons',value:100,origins:['Shop'],observations:['Test'],locations:[{storage:'A',stock:1}],stock:1},{code:'200',name:'Car',theme:'City',value:50,origins:['Other'],observations:[],locations:[{storage:'B',stock:2}],stock:2}];
+ transferSelection.filterState.appliedFilters={...emptyConsultationFilters(),name:'Car'};`);
+assert.ok(run(`transferSelectionMarkup().includes('data-consultation-form')`));
+assert.ok(run(`transferSelectionMarkup().includes('data-transfer-code="200"')`));
+assert.ok(!run(`transferSelectionMarkup().includes('data-transfer-code="100"')`));
+assert.equal(run('state.batch.items[0].code'),'100');
+assert.equal(run('activeFilterState()===transferSelection.filterState'),true);
+run(`state.mode='consulta'`);
+assert.equal(run('activeFilterState()===state.consultation'),true);
+run(`transferSelection.filterState=emptyConsultationState();state.mode='lote';state.batch={...emptyBatchState(),movementType:'transferencia',items,form};`);
 (async () => {
   run(`let requests=[]; ensureBatchColumnAndCheckDuplicate=async()=>false; loadMovementStockRows=async()=>stock;ensureCostColumn=async()=>{};
     fetch=async(url,options)=>{requests.push({url,body:JSON.parse(options.body)});return {ok:true,status:200,json:async()=>({})}};`);

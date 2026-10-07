@@ -47,7 +47,12 @@ function transferButton(batch = false) {
   return `<button type="button" class="sheets-open-button home-action home-action-transferencia" ${batch ? 'data-action="batch-type" data-batch-type="transferencia"' : 'data-mode="transferencia"'}${REQUIRE_GOOGLE_LOGIN_FOR_NAVIGATION && !state.loggedIn ? " disabled" : ""}>TRANSFERÊNCIAS<span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span></button>`;
 }
 
-const transferSelection = { items: [], loading: false, error: "", authRequired: false };
+const transferSelection = { items: [], loading: false, error: "", authRequired: false, filterState: emptyConsultationState() };
+
+function activeFilterState() {
+  const transfer = state.mode === "transferencia" && !state.selected || isBatchMode() && state.batch.movementType === "transferencia" && ["select", "scan"].includes(state.batch.phase);
+  return transfer ? transferSelection.filterState : state.consultation;
+}
 
 async function loadTransferSelection() {
   transferSelection.loading = true;
@@ -69,10 +74,12 @@ async function loadTransferSelection() {
 
 function transferSelectionMarkup() {
   const individual = state.mode === "transferencia";
+  const visibleItems = consultationResults(transferSelection.items, transferSelection.filterState.appliedFilters);
   const selected = new Set(individual ? [transferSelection.singleCode].filter(Boolean) : state.batch.items.map(item => item.code));
   return `<section class="workspace batch-page transfer-selection-page"><section class="batch-panel">
     <div class="batch-heading"><p>${individual ? "TRANSFERÊNCIA INDIVIDUAL" : "TRANSFERÊNCIAS EM LOTE"}</p><div class="transfer-selection-title"><h2>${individual ? "Selecionar set em stock" : "Selecionar sets em stock"}</h2><button type="button" class="transfer-barcode-button" data-action="scanner" aria-label="Selecionar sets com o scanner de códigos de barras" title="Abrir scanner de códigos de barras"${!state.accessToken || state.checkingCredentials ? " disabled" : ""}>${icons.scanner}</button></div><span>${individual ? "Escolhe um set a transferir." : "Escolhe os sets a transferir."} No passo seguinte podes ajustar as quantidades e as localizações de origem.</span></div>
-    <div class="transfer-stock-list">${transferSelection.loading ? '<p role="status">A carregar stock…</p>' : transferSelection.error ? `<p role="alert">${escapeHtml(transferSelection.error)}</p><button class="secondary" data-action="${state.accessToken && !transferSelection.authRequired ? "transfer-reload" : "login"}">${state.accessToken && !transferSelection.authRequired ? "TENTAR NOVAMENTE" : "LOGIN GOOGLE"}</button>` : transferSelection.items.length ? transferSelection.items.map(item => `<label class="transfer-stock-item"><input type="${individual ? "radio" : "checkbox"}" name="transfer-set" data-transfer-code="${escapeHtml(item.code)}"${selected.has(item.code) ? " checked" : ""}><span><strong>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</strong><small>${item.stock} un. · ${item.locations.map(location => `${escapeHtml(location.storage)} (${location.stock})`).join(" · ")}</small></span>${item.imageUrl ? `<img class="transfer-stock-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="" width="72" height="60" loading="lazy">` : `<span class="transfer-stock-thumbnail transfer-stock-placeholder" aria-hidden="true">▦</span>`}</label>`).join("") : '<p>Não há sets em stock para transferir.</p>'}</div>
+    ${consultationFilterMarkup(transferSelection.filterState, transferSelection.items)}
+    <div class="transfer-stock-list">${transferSelection.loading ? '<p role="status">A carregar stock…</p>' : transferSelection.error ? `<p role="alert">${escapeHtml(transferSelection.error)}</p><button class="secondary" data-action="${state.accessToken && !transferSelection.authRequired ? "transfer-reload" : "login"}">${state.accessToken && !transferSelection.authRequired ? "TENTAR NOVAMENTE" : "LOGIN GOOGLE"}</button>` : visibleItems.length ? visibleItems.map(item => `<label class="transfer-stock-item"><input type="${individual ? "radio" : "checkbox"}" name="transfer-set" data-transfer-code="${escapeHtml(item.code)}"${selected.has(item.code) ? " checked" : ""}><span><strong>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</strong><small>${item.stock} un. · ${item.locations.map(location => `${escapeHtml(location.storage)} (${location.stock})`).join(" · ")}</small></span>${item.imageUrl ? `<img class="transfer-stock-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="" width="72" height="60" loading="lazy">` : `<span class="transfer-stock-thumbnail transfer-stock-placeholder" aria-hidden="true">▦</span>`}</label>`).join("") : '<p>Não há sets em stock que correspondam aos filtros.</p>'}</div>
     <div class="transfer-selection-footer"><button class="primary" data-action="${individual ? "transfer-single-continue" : "batch-review"}"${!selected.size || transferSelection.loading || transferSelection.error ? " disabled" : ""}>CONTINUAR (${selected.size})</button></div>
   </section></section>`;
 }
@@ -195,7 +202,7 @@ function formatMoneyValue(value) {
   return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
 }
 
-function consultationFilterCount(filters = state.consultation.filters) {
+function consultationFilterCount(filters = activeFilterState().filters) {
   const stringFilters = ["set", "theme", "name", "origin", "obs", "storage"].filter(key => String(filters[key] || "").trim()).length;
   const hasValueFilter = String(filters.valueMin || "").trim() || filters.valueOperator === "between" && String(filters.valueMax || "").trim();
   return stringFilters + (hasValueFilter ? 1 : 0);
@@ -317,12 +324,11 @@ function consultationItems(rows = state.consultation.rows) {
   }).filter(item => item.stock > 0);
 }
 
-function consultationResults() {
-  const filters = state.consultation.appliedFilters;
+function consultationResults(sourceItems = null, filters = state.consultation.appliedFilters) {
   const matchesText = (value, filter) => !normalizeSearchText(filter) || normalizeSearchText(value).includes(normalizeSearchText(filter));
   const minimum = parseMoneyValue(filters.valueMin);
   const maximum = parseMoneyValue(filters.valueMax);
-  const items = state.consultation.loaded ? state.consultation.items : consultationItems();
+  const items = sourceItems || (state.consultation.loaded ? state.consultation.items : consultationItems());
   return items.filter(item => {
     if (!matchesText(item.code, filters.set)) return false;
     if (!matchesText(item.theme, filters.theme)) return false;
@@ -740,17 +746,17 @@ function consultationClearButton(key, label, value) {
   return `<button type="button" class="consultation-field-clear" data-action="consultation-field-clear" data-clear-filter="${key}" aria-label="Limpar ${escapeHtml(label)}"${String(value ?? "") ? "" : " hidden"}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>`;
 }
 
-function consultationFilterMarkup() {
-  const filters = state.consultation.filters;
+function consultationFilterMarkup(filterState = state.consultation, items = state.consultation.items) {
+  const filters = filterState.filters;
   const option = (value, label) => `<option value="${value}"${filters.valueOperator === value ? " selected" : ""}>${label}</option>`;
   const filterField = (key, label, placeholder) => `<label><span>${label}</span><span class="consultation-input-shell"><input type="search" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off">${consultationClearButton(key, label, filters[key])}</span></label>`;
   const distinctOptions = values => [...new Set(values.map(value => String(value || "").trim()).filter(Boolean))].sort((left, right) => left.localeCompare(right, "pt", { sensitivity: "base", numeric: true }));
   const selectFilter = (key, label, emptyLabel, values) => `<label><span>${label}</span><span class="select-control consultation-select-control"><select data-consultation-filter="${key}" aria-label="Filtrar por ${label.toLocaleLowerCase("pt-PT")}"><option value="">${emptyLabel}</option>${distinctOptions(values).map(value => `<option value="${escapeHtml(value)}"${filters[key] === value ? " selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select><span class="select-arrow" aria-hidden="true">▾</span></span></label>`;
   const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}">${consultationClearButton(key, label, filters[key])}<span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
-  const origins = state.consultation.items.flatMap(item => item.origins);
-  const storages = state.consultation.items.flatMap(item => item.locations.map(location => location.storage));
+  const origins = items.flatMap(item => item.origins);
+  const storages = items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
-  return `<details class="consultation-filters"${state.consultation.filtersOpen === false ? "" : " open"}>
+  return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
     <summary><span>Filtros</span><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
@@ -2964,13 +2970,13 @@ document.addEventListener("click", async event => {
   if (action === "consultation-value-increase" || action === "consultation-value-decrease") {
     const button = event.target.closest("[data-consultation-value]");
     const key = button?.dataset.consultationValue;
-    if (!key || !(key in state.consultation.filters)) return;
-    const current = parseMoneyValue(state.consultation.filters[key]);
+    if (!key || !(key in activeFilterState().filters)) return;
+    const current = parseMoneyValue(activeFilterState().filters[key]);
     const next = Math.max(0, (Number.isFinite(current) ? current : 0) + (action === "consultation-value-increase" ? 1 : -1));
-    state.consultation.filters[key] = next.toFixed(2);
+    activeFilterState().filters[key] = next.toFixed(2);
     const input = document.querySelector(`[data-consultation-filter="${key}"]`);
     if (input) {
-      input.value = state.consultation.filters[key];
+      input.value = activeFilterState().filters[key];
       const clearButton = input.parentElement?.querySelector(".consultation-field-clear");
       if (clearButton) clearButton.hidden = false;
     }
@@ -2993,14 +2999,14 @@ document.addEventListener("click", async event => {
     return;
   }
   if (action === "consultation-clear") {
-    state.consultation.filters = emptyConsultationFilters();
-    state.consultation.appliedFilters = emptyConsultationFilters();
+    activeFilterState().filters = emptyConsultationFilters();
+    activeFilterState().appliedFilters = emptyConsultationFilters();
     render();
     return;
   }
   if (action === "consultation-apply") {
     event.preventDefault();
-    const filters = state.consultation.filters;
+    const filters = activeFilterState().filters;
     const minimum = parseMoneyValue(filters.valueMin);
     const maximum = parseMoneyValue(filters.valueMax);
     const hasValueFilter = String(filters.valueMin || "").trim() || String(filters.valueMax || "").trim();
@@ -3014,8 +3020,8 @@ document.addEventListener("click", async event => {
       render();
       return;
     }
-    state.consultation.appliedFilters = { ...filters };
-    state.consultation.filtersOpen = false;
+    activeFilterState().appliedFilters = { ...filters };
+    activeFilterState().filtersOpen = false;
     render();
     return;
   }
@@ -3484,14 +3490,14 @@ document.addEventListener("input", async event => {
   }
   const consultationFilter = event.target.dataset?.consultationFilter;
   if (consultationFilter !== undefined) {
-    state.consultation.filters[consultationFilter] = event.target.value;
+    activeFilterState().filters[consultationFilter] = event.target.value;
     const clearButton = event.target.parentElement?.querySelector(".consultation-field-clear");
     if (clearButton) clearButton.hidden = event.target.value === "";
     if (consultationFilter === "valueOperator") {
       const minimumInput = document.querySelector('[data-consultation-filter="valueMin"]');
       const maximum = document.querySelector('[data-consultation-value-control="valueMax"]');
       const maximumInput = maximum?.querySelector('[data-consultation-filter="valueMax"]');
-      if (event.target.value !== "between") state.consultation.filters.valueMax = "";
+      if (event.target.value !== "between") activeFilterState().filters.valueMax = "";
       if (minimumInput) minimumInput.placeholder = event.target.value === "between" ? "Mínimo" : "Valor";
       if (maximum) {
         maximum.hidden = event.target.value !== "between";
@@ -3653,7 +3659,7 @@ document.addEventListener("input", async event => {
 
 document.addEventListener("toggle", event => {
   if (event.target.matches?.(".consultation-filters") && event.target.isConnected) {
-    state.consultation.filtersOpen = event.target.open;
+    activeFilterState().filtersOpen = event.target.open;
   }
 }, true);
 
