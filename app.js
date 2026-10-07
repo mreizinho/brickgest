@@ -1125,13 +1125,7 @@ window.addEventListener("resize", updateMobileConcludeButton);
 
 function updateLotMobileHeaderSummary() {
   const title = document.querySelector("[data-lot-mobile-title]");
-  if (!title) return;
-  const content = document.querySelector(".app-content");
-  const summary = document.querySelector(".batch-review-panel .batch-heading span");
-  const selectingTransfers = state.batch.movementType === "transferencia" && Boolean(document.querySelector(".transfer-selection-page"));
-  const summaryHasScrolledAway = Boolean(content && summary && summary.getBoundingClientRect().bottom <= content.getBoundingClientRect().top);
-  const label = batchModeLabel();
-  title.textContent = (selectingTransfers || summaryHasScrolledAway) ? `${label} (${state.batch.items.length} Refs. - ${batchUnitCount()} un.)` : label;
+  if (title) title.textContent = batchModeLabel();
 }
 
 function waitForMobileSwipeTransition(element) {
