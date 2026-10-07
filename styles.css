@@ -393,3 +393,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-unit-cost{overflow-wrap:anywhere;text-align:right;color:#686e72}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:850px){.consultation-item{grid-template-columns:58px minmax(0,1fr)}.consultation-locations{grid-column:1/-1}.consultation-item-summary{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;text-align:left}.consultation-item-summary>b{grid-column:1;font-size:14px}.consultation-item-summary>small{grid-column:2;grid-row:1;white-space:normal;text-align:right;margin:0}.consultation-cost-group{grid-column:1/-1;font-size:13px}.consultation-cost-group>b{font-size:13px}}
+
+.consultation-cost-group>b{font-weight:400}
+.consultation-invoice-icon img{display:block;width:24px;height:24px;flex:none}
+.consultation-item-summary>.consultation-pvr{font-family:inherit;font-size:15px;font-weight:700;color:inherit}
+@media(max-width:850px){.consultation-item-summary>.consultation-pvr{font-size:14px}}

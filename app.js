@@ -768,14 +768,14 @@ function consultationResultMarkup(item) {
     { quantity: item.invoiceStock, cost: item.cost, label: "Com factura", billed: true },
     { quantity: item.noInvoiceStock, cost: item.costWithoutInvoice, label: "Sem factura", billed: false },
   ].filter(group => Number(group.quantity) > 0).map(group => {
-    const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" stroke-linejoin="round"/><path d="M9 7h6M9 11h6"/>${group.billed ? '<path d="m9 15 2 2 4-4"/>' : '<path d="m3 3 18 18"/>'}</svg>`;
+    const icon = `<img src="public/options/${group.billed ? "request-page" : "scan-delete"}.svg" alt="" width="24" height="24">`;
     return `<span class="consultation-cost-group" title="${group.label}" aria-label="${group.label}: ${group.quantity} unidades"><span class="consultation-invoice-icon">${icon}<span class="visually-hidden">${group.label}</span></span><b>${Number(group.quantity).toLocaleString("pt-PT")} un.</b><span class="consultation-unit-cost">${group.cost == null ? "Custo por apurar" : escapeHtml(formatMoneyValue(group.cost))}</span></span>`;
   }).join("");
   return `<article class="consultation-item">
     <span class="consultation-item-image">${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : "#"}</span>
     <span class="consultation-item-copy"><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme)} · ${item.year || "—"}</small></span>
     <span class="consultation-locations">${locations}</span>
-    <span class="consultation-item-summary"><b>${item.stock.toLocaleString("pt-PT")} un.</b>${costGroups}<small>PVR ${item.value === null ? "—" : escapeHtml(formatMoneyValue(item.value))}</small></span>
+    <span class="consultation-item-summary"><b>Total: ${item.stock.toLocaleString("pt-PT")} un.</b>${costGroups}<small class="consultation-pvr">PVR ${item.value === null ? "—" : escapeHtml(formatMoneyValue(item.value))}</small></span>
   </article>`;
 }
 
