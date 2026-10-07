@@ -21,3 +21,6 @@ assert.ok(vm.runInContext(`consultationClearButton('set','Set','10255').includes
 assert.ok(!vm.runInContext(`consultationClearButton('set','Set','10255').includes(' hidden')`,context));
 assert.ok(vm.runInContext(`consultationClearButton('set','Set','').includes(' hidden')`,context));
 assert.ok(!vm.runInContext(`consultationClearButton('valueMin','PVR',0).includes(' hidden')`,context));
+
+assert.ok(markup.indexOf('data-consultation-filter="theme"') < markup.indexOf('data-consultation-filter="storage"'));
+assert.ok(markup.indexOf('data-consultation-filter="storage"') < markup.indexOf('data-consultation-filter="origin"'));

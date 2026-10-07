@@ -762,9 +762,9 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
       ${filterField("theme", "Tema", "Ex.: Icons")}
+      ${selectFilter("storage", "Local", "Todos", storages)}
       ${selectFilter("origin", "Origem", "Todas", origins)}
       ${filterField("obs", "Obs", "Texto nas observações")}
-      ${selectFilter("storage", "Local", "Todos", storages)}
       <div class="consultation-value-filter"><span class="consultation-field-label">PVR</span><span class="consultation-value-controls"><span class="select-control consultation-select-control"><select data-consultation-filter="valueOperator" aria-label="Comparação do PVR">${option("less", "Menor que")}${option("greater", "Maior que")}${option("between", "Entre")}</select><span class="select-arrow" aria-hidden="true">▾</span></span>${valueControl("valueMin", "valor em euros", filters.valueOperator === "between" ? "Mínimo" : "Valor")}${valueControl("valueMax", "valor máximo em euros", "Máximo", filters.valueOperator !== "between")}</span></div>
       <div class="consultation-actions"><button type="button" class="secondary" data-action="consultation-clear">LIMPAR</button><button type="submit" class="primary" data-action="consultation-apply">CONSULTAR</button></div>
     </form>
