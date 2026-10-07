@@ -751,7 +751,7 @@ function consultationFilterMarkup() {
   const storages = state.consultation.items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
   return `<details class="consultation-filters"${state.consultation.filtersOpen === false ? "" : " open"}>
-    <summary><span>Filtros</span><strong id="consultation-filter-count">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
+    <summary><span>Filtros</span><strong id="consultation-filter-count" class="${activeFilters > 1 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
@@ -2982,7 +2982,10 @@ document.addEventListener("click", async event => {
     }
     const count = consultationFilterCount();
     const counter = document.querySelector("#consultation-filter-count");
-    if (counter) counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+    if (counter) {
+      counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+      counter.classList.toggle("multiple-active", count > 1);
+    }
     return;
   }
   if (action === "consultation-field-clear") {
@@ -3503,7 +3506,10 @@ document.addEventListener("input", async event => {
     }
     const count = consultationFilterCount();
     const counter = document.querySelector("#consultation-filter-count");
-    if (counter) counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+    if (counter) {
+      counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+      counter.classList.toggle("multiple-active", count > 1);
+    }
     return;
   }
   if (event.target.dataset?.inventorySheetName !== undefined) {

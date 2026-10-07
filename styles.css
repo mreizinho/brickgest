@@ -417,3 +417,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-field-clear:focus-visible{outline:2px solid #19334a}
 .consultation-value-stepper .consultation-field-clear{right:42px}
 .consultation-filter-grid .consultation-value-stepper input{padding-right:38px}
+
+.consultation-filters summary strong.multiple-active,.consultation-filters summary:hover strong.multiple-active{background:#ffd600;color:#171717;border-color:#ffd600}
