@@ -398,3 +398,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-invoice-icon img{display:block;width:24px;height:24px;flex:none}
 .consultation-item-summary>.consultation-pvr{font-family:inherit;font-size:15px;font-weight:700;color:inherit}
 @media(max-width:850px){.consultation-item-summary>.consultation-pvr{font-size:14px}}
+
+@media(max-width:850px){.consultation-locations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.consultation-locations>span{min-width:0}}
