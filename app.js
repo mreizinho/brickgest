@@ -47,7 +47,7 @@ function transferButton(batch = false) {
   return `<button type="button" class="sheets-open-button home-action home-action-transferencia" ${batch ? 'data-action="batch-type" data-batch-type="transferencia"' : 'data-mode="transferencia"'}${REQUIRE_GOOGLE_LOGIN_FOR_NAVIGATION && !state.loggedIn ? " disabled" : ""}>TRANSFERÊNCIAS<span class="material-symbols-outlined" aria-hidden="true">swap_horiz</span></button>`;
 }
 
-const transferSelection = { items: [], loading: false, error: "", authRequired: false, filterState: emptyConsultationState() };
+const transferSelection = { items: [], loading: false, error: "", authRequired: false, filterState: { ...emptyConsultationState(), filtersOpen: false } };
 
 function activeFilterState() {
   const transfer = state.mode === "transferencia" && !state.selected || isBatchMode() && state.batch.movementType === "transferencia" && ["select", "scan"].includes(state.batch.phase);
