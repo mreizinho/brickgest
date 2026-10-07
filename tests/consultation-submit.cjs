@@ -16,3 +16,8 @@ assert.equal(clicks,1);assert.equal(prevented,1);
 listeners.submit.at(-1)({target:{matches:()=>false},preventDefault(){prevented++}});
 assert.equal(clicks,1);assert.equal(prevented,1);
 console.log('Consultation submit tests passed: native form submission forwards to Consultar, search keyboard hint, unrelated forms ignored.');
+
+assert.ok(vm.runInContext(`consultationClearButton('set','Set','10255').includes('data-clear-filter="set"')`,context));
+assert.ok(!vm.runInContext(`consultationClearButton('set','Set','10255').includes(' hidden')`,context));
+assert.ok(vm.runInContext(`consultationClearButton('set','Set','').includes(' hidden')`,context));
+assert.ok(!vm.runInContext(`consultationClearButton('valueMin','PVR',0).includes(' hidden')`,context));

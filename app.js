@@ -736,13 +736,17 @@ function genericModeMarkup() {
     <div class="divider"><span>ou</span></div><button class="scanner-button" data-action="scanner"><span class="scan-corners">▦</span><strong>Ler com scanner</strong><small>O leitor envia o EAN automaticamente</small></button><p class="scanner-tip"><b>i</b> Leitores USB/Bluetooth funcionam como teclado: basta apontar e ler.</p>${result}</section></section>`;
 }
 
+function consultationClearButton(key, label, value) {
+  return `<button type="button" class="consultation-field-clear" data-action="consultation-field-clear" data-clear-filter="${key}" aria-label="Limpar ${escapeHtml(label)}"${String(value ?? "") ? "" : " hidden"}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>`;
+}
+
 function consultationFilterMarkup() {
   const filters = state.consultation.filters;
   const option = (value, label) => `<option value="${value}"${filters.valueOperator === value ? " selected" : ""}>${label}</option>`;
-  const filterField = (key, label, placeholder) => `<label><span>${label}</span><input type="search" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off"></label>`;
+  const filterField = (key, label, placeholder) => `<label><span>${label}</span><span class="consultation-input-shell"><input type="search" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off">${consultationClearButton(key, label, filters[key])}</span></label>`;
   const distinctOptions = values => [...new Set(values.map(value => String(value || "").trim()).filter(Boolean))].sort((left, right) => left.localeCompare(right, "pt", { sensitivity: "base", numeric: true }));
   const selectFilter = (key, label, emptyLabel, values) => `<label><span>${label}</span><span class="select-control consultation-select-control"><select data-consultation-filter="${key}" aria-label="Filtrar por ${label.toLocaleLowerCase("pt-PT")}"><option value="">${emptyLabel}</option>${distinctOptions(values).map(value => `<option value="${escapeHtml(value)}"${filters[key] === value ? " selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select><span class="select-arrow" aria-hidden="true">▾</span></span></label>`;
-  const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}"><span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
+  const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}">${consultationClearButton(key, label, filters[key])}<span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
   const origins = state.consultation.items.flatMap(item => item.origins);
   const storages = state.consultation.items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
@@ -2971,10 +2975,24 @@ document.addEventListener("click", async event => {
     const next = Math.max(0, (Number.isFinite(current) ? current : 0) + (action === "consultation-value-increase" ? 1 : -1));
     state.consultation.filters[key] = next.toFixed(2);
     const input = document.querySelector(`[data-consultation-filter="${key}"]`);
-    if (input) input.value = state.consultation.filters[key];
+    if (input) {
+      input.value = state.consultation.filters[key];
+      const clearButton = input.parentElement?.querySelector(".consultation-field-clear");
+      if (clearButton) clearButton.hidden = false;
+    }
     const count = consultationFilterCount();
     const counter = document.querySelector("#consultation-filter-count");
     if (counter) counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+    return;
+  }
+  if (action === "consultation-field-clear") {
+    const key = event.target.closest("[data-clear-filter]").dataset.clearFilter;
+    const input = document.querySelector(`[data-consultation-filter="${key}"]`);
+    if (input) {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    }
     return;
   }
   if (action === "consultation-clear") {
@@ -3470,6 +3488,8 @@ document.addEventListener("input", async event => {
   const consultationFilter = event.target.dataset?.consultationFilter;
   if (consultationFilter !== undefined) {
     state.consultation.filters[consultationFilter] = event.target.value;
+    const clearButton = event.target.parentElement?.querySelector(".consultation-field-clear");
+    if (clearButton) clearButton.hidden = event.target.value === "";
     if (consultationFilter === "valueOperator") {
       const minimumInput = document.querySelector('[data-consultation-filter="valueMin"]');
       const maximum = document.querySelector('[data-consultation-value-control="valueMax"]');

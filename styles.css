@@ -406,3 +406,14 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-filters summary strong::after{content:"▾";font-size:16px;line-height:1}
 .consultation-filters:not([open]) summary strong::after{content:"▸"}
 .consultation-filters summary:hover strong{background:#9a9fa2}
+
+.consultation-input-shell,.consultation-value-stepper{position:relative}
+.consultation-input-shell>input{padding-right:42px}
+.consultation-input-shell input::-webkit-search-cancel-button{-webkit-appearance:none}
+.consultation-field-clear{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;padding:6px;border:0;border-radius:50%;background:transparent;color:#686e72;cursor:pointer}
+.consultation-field-clear[hidden]{display:none}
+.consultation-field-clear svg{width:20px;height:20px}
+.consultation-field-clear:hover{background:#eef0f1}
+.consultation-field-clear:focus-visible{outline:2px solid #19334a}
+.consultation-value-stepper .consultation-field-clear{right:42px}
+.consultation-filter-grid .consultation-value-stepper input{padding-right:38px}
