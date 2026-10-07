@@ -80,3 +80,9 @@ assert.ok(!run(`consultationResultMarkup(displayItem).includes('0 un.')`));
 run(`displayItem.noInvoiceStock=2;displayItem.stock=3`);
 assert.ok(run(`consultationResultMarkup(displayItem).includes('title="Sem factura"')`));
 assert.equal(run(`(consultationResultMarkup(displayItem).match(/class="consultation-cost-group"/g)||[]).length`),2);
+
+run(`displayItem.imageUrl='https://example.com/set.jpg'`);
+assert.ok(run(`consultationResultMarkup(displayItem).includes('data-action="consultation-image"')`));
+assert.ok(run(`consultationResultMarkup(displayItem).includes('data-set-code="100"')`));
+run(`displayItem.imageUrl=''`);
+assert.ok(!run(`consultationResultMarkup(displayItem).includes('data-action="consultation-image"')`));

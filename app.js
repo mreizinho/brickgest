@@ -782,7 +782,7 @@ function consultationResultMarkup(item) {
     return `<span class="consultation-cost-group" title="${group.label}" aria-label="${group.label}: ${group.quantity} unidades"><span class="consultation-invoice-icon">${icon}<span class="visually-hidden">${group.label}</span></span><b>${Number(group.quantity).toLocaleString("pt-PT")} un.</b><span class="consultation-unit-cost">${group.cost == null ? "Custo por apurar" : escapeHtml(formatMoneyValue(group.cost))}</span></span>`;
   }).join("");
   return `<article class="consultation-item">
-    <span class="consultation-item-image">${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : "#"}</span>
+    ${item.imageUrl ? `<button type="button" class="consultation-item-image consultation-image-button" data-action="consultation-image" data-set-code="${escapeHtml(item.code)}" aria-label="Ver imagem de ${escapeHtml(item.code)}"><img src="${escapeHtml(item.imageUrl)}" alt=""></button>` : `<span class="consultation-item-image">#</span>`}
     <span class="consultation-item-copy"><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme)} · ${item.year || "—"}</small></span>
     <span class="consultation-locations">${locations}</span>
     <span class="consultation-item-summary"><b>Total: ${item.stock.toLocaleString("pt-PT")} un.</b>${costGroups}<small class="consultation-pvr">PVR ${item.value === null ? "—" : escapeHtml(formatMoneyValue(item.value))}</small></span>
@@ -2917,6 +2917,12 @@ document.addEventListener("click", async event => {
   }
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (!action) return;
+  if (action === "consultation-image") {
+    const code = event.target.closest("[data-set-code]")?.dataset.setCode;
+    const item = state.consultation.items.find(item => String(item.code) === code);
+    openBatchImage(item);
+    return;
+  }
   if (action === "batch-image") {
     openBatchImage(batchItemByCode(event.target.closest("[data-batch-code]")?.dataset.batchCode));
     return;
