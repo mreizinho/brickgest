@@ -110,7 +110,7 @@ function emptyConsultationFilters() {
 }
 
 function emptyConsultationState() {
-  return { filters: emptyConsultationFilters(), appliedFilters: emptyConsultationFilters(), rows: [], items: [], loading: false, loaded: false, error: "" };
+  return { filtersOpen: true, filters: emptyConsultationFilters(), appliedFilters: emptyConsultationFilters(), rows: [], items: [], loading: false, loaded: false, error: "" };
 }
 
 function emptyBatchState(userEmail = "", inventory = false) {
@@ -746,7 +746,7 @@ function consultationFilterMarkup() {
   const origins = state.consultation.items.flatMap(item => item.origins);
   const storages = state.consultation.items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
-  return `<details class="consultation-filters" open>
+  return `<details class="consultation-filters"${state.consultation.filtersOpen === false ? "" : " open"}>
     <summary><span>Filtros</span><strong id="consultation-filter-count">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
@@ -3000,6 +3000,7 @@ document.addEventListener("click", async event => {
       return;
     }
     state.consultation.appliedFilters = { ...filters };
+    state.consultation.filtersOpen = false;
     render();
     return;
   }
@@ -3629,6 +3630,12 @@ document.addEventListener("input", async event => {
   state.selected = null;
   event.target.value = state.query;
 });
+
+document.addEventListener("toggle", event => {
+  if (event.target.matches?.(".consultation-filters") && event.target.isConnected) {
+    state.consultation.filtersOpen = event.target.open;
+  }
+}, true);
 
 document.addEventListener("submit", event => {
   if (!event.target.matches?.("[data-consultation-form]")) return;
