@@ -739,16 +739,16 @@ function genericModeMarkup() {
 function consultationFilterMarkup() {
   const filters = state.consultation.filters;
   const option = (value, label) => `<option value="${value}"${filters.valueOperator === value ? " selected" : ""}>${label}</option>`;
-  const filterField = (key, label, placeholder) => `<label><span>${label}</span><input type="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off"></label>`;
+  const filterField = (key, label, placeholder) => `<label><span>${label}</span><input type="search" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off"></label>`;
   const distinctOptions = values => [...new Set(values.map(value => String(value || "").trim()).filter(Boolean))].sort((left, right) => left.localeCompare(right, "pt", { sensitivity: "base", numeric: true }));
   const selectFilter = (key, label, emptyLabel, values) => `<label><span>${label}</span><span class="select-control consultation-select-control"><select data-consultation-filter="${key}" aria-label="Filtrar por ${label.toLocaleLowerCase("pt-PT")}"><option value="">${emptyLabel}</option>${distinctOptions(values).map(value => `<option value="${escapeHtml(value)}"${filters[key] === value ? " selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select><span class="select-arrow" aria-hidden="true">▾</span></span></label>`;
-  const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}"><span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
+  const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}"><span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
   const origins = state.consultation.items.flatMap(item => item.origins);
   const storages = state.consultation.items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
   return `<details class="consultation-filters" open>
     <summary><span>Filtros</span><strong id="consultation-filter-count">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
-    <div class="consultation-filter-grid">
+    <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
       ${filterField("theme", "Tema", "Ex.: Icons")}
@@ -756,8 +756,8 @@ function consultationFilterMarkup() {
       ${filterField("obs", "Obs", "Texto nas observações")}
       ${selectFilter("storage", "Local", "Todos", storages)}
       <div class="consultation-value-filter"><span class="consultation-field-label">PVR</span><span class="consultation-value-controls"><span class="select-control consultation-select-control"><select data-consultation-filter="valueOperator" aria-label="Comparação do PVR">${option("less", "Menor que")}${option("greater", "Maior que")}${option("between", "Entre")}</select><span class="select-arrow" aria-hidden="true">▾</span></span>${valueControl("valueMin", "valor em euros", filters.valueOperator === "between" ? "Mínimo" : "Valor")}${valueControl("valueMax", "valor máximo em euros", "Máximo", filters.valueOperator !== "between")}</span></div>
-      <div class="consultation-actions"><button type="button" class="secondary" data-action="consultation-clear">LIMPAR</button><button type="button" class="primary" data-action="consultation-apply">CONSULTAR</button></div>
-    </div>
+      <div class="consultation-actions"><button type="button" class="secondary" data-action="consultation-clear">LIMPAR</button><button type="submit" class="primary" data-action="consultation-apply">CONSULTAR</button></div>
+    </form>
     <p class="consultation-filter-note">Origem e Obs pesquisam o histórico de movimentos do set.</p>
   </details>`;
 }
@@ -2984,6 +2984,7 @@ document.addEventListener("click", async event => {
     return;
   }
   if (action === "consultation-apply") {
+    event.preventDefault();
     const filters = state.consultation.filters;
     const minimum = parseMoneyValue(filters.valueMin);
     const maximum = parseMoneyValue(filters.valueMax);
@@ -3627,6 +3628,12 @@ document.addEventListener("input", async event => {
   state.query = event.target.value.replace(/\D/g, "");
   state.selected = null;
   event.target.value = state.query;
+});
+
+document.addEventListener("submit", event => {
+  if (!event.target.matches?.("[data-consultation-form]")) return;
+  event.preventDefault();
+  event.target.querySelector('[data-action="consultation-apply"]')?.click();
 });
 
 document.addEventListener("keydown", async event => {
