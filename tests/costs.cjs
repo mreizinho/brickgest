@@ -72,3 +72,11 @@ assert.ok(run(`batchConditionsMarkup().includes('Colecção') && batchConditions
  assert.equal(run(`requests.length`),3);
  console.log('Invoice costs: independent averages, reset, zero, stock limits and movement columns passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+run(`const displayItem={code:'100',name:'Test',theme:'Icons',year:2024,stock:1,locations:[],invoiceStock:1,noInvoiceStock:0,cost:0,costWithoutInvoice:null,value:20};`);
+assert.ok(run(`consultationResultMarkup(displayItem).includes('title="Com factura"')`));
+assert.ok(!run(`consultationResultMarkup(displayItem).includes('title="Sem factura"')`));
+assert.ok(!run(`consultationResultMarkup(displayItem).includes('0 un.')`));
+run(`displayItem.noInvoiceStock=2;displayItem.stock=3`);
+assert.ok(run(`consultationResultMarkup(displayItem).includes('title="Sem factura"')`));
+assert.equal(run(`(consultationResultMarkup(displayItem).match(/class="consultation-cost-group"/g)||[]).length`),2);
