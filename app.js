@@ -587,7 +587,7 @@ function optionsMarkup() {
         <h2>O que queres fazer hoje?</h2>
         <p>Escolhe uma opção.</p>
         <div class="home-actions">
-          ${homeButton("lote", "MOVIMENTOS", "lote")}
+          ${homeButton("lote", "MOVIMENTOS", "barcode")}
           ${homeButton("consulta", "CONSULTAS", "consultar")}
           ${homeButton("vendas", "VENDAS", "vendas", false)}
         </div>

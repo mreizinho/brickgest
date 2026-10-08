@@ -10,7 +10,7 @@ Modified: entrada.svg and saida.svg split the original paths into separate shape
 | entrada.svg | add_box | Material Symbols Outlined |
 | saida.svg | output | Material Symbols Outlined |
 | consultar.svg | search | action |
-| lote.svg | barcode | Material Symbols Outlined |
+| barcode.svg | barcode | Material Symbols Outlined |
 | vendas.svg | attach_money | editor |
 
 Source: https://github.com/google/material-design-icons/tree/master/src
@@ -18,7 +18,7 @@ Each icon is sourced from `<category>/<icon>/materialicons/24px.svg`.
 
 Licensed under Apache License 2.0; see `material-icons-LICENSE.txt`.
 
-`lote.svg` source: https://github.com/google/material-design-icons/blob/master/symbols/web/barcode/materialsymbolsoutlined/barcode_24px.svg
+`barcode.svg` source: https://github.com/google/material-design-icons/blob/master/symbols/web/barcode/materialsymbolsoutlined/barcode_24px.svg
 
 `saida.svg` source: https://github.com/google/material-design-icons/blob/master/symbols/web/output/materialsymbolsoutlined/output_24px.svg
 

@@ -7,7 +7,7 @@ vm.runInContext(source,context);
 const run = code => vm.runInContext(code,context);
 assert.ok(run(`optionsMarkup().includes('data-mode="lote">MOVIMENTOS')`));
 assert.ok(!run(`optionsMarkup().includes('MODO LOTE') || optionsMarkup().includes('data-mode="movimentos"')`));
-assert.ok(run(`optionsMarkup().includes('public/options/lote.svg')`));
+assert.ok(run(`optionsMarkup().includes('public/options/barcode.svg')`));
 run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'entrada',phase:'review',items:[{code:'10300',name:'Saved draft',qty:1,imageUrl:''}]};`);
 assert.ok(run(`batchReviewMarkup().includes('https://images.brickset.com/sets/images/10300-1.jpg')`));
 assert.equal(run(`state.batch.items[0].qty`),1);
