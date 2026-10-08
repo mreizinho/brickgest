@@ -581,7 +581,7 @@ function loginNoticeMarkup() {
 function optionsMarkup() {
   return `<section class="workspace sheets-page home-page" id="inventario">
     <article class="sheets-explainer home-explainer">
-      <div class="sheets-visual home-visual"><img src="public/icon-brickgest.png?v=20261002-updated-4" alt="Logótipo BrickGEST"></div>
+      <div class="sheets-visual home-visual"><img src="public/splash-brickgest.png?v=20261002-updated-4" alt="Logótipo BrickGEST"></div>
       <div class="sheets-copy home-copy">
         <p class="sheets-eyebrow">INÍCIO</p>
         <h2>O que queres fazer hoje?</h2>
@@ -615,7 +615,7 @@ function movementsMarkup() {
 
 function googleSheetsMarkup() {
   return `<section class="workspace sheets-page"><article class="sheets-explainer">
-    <div class="sheets-visual"><img src="public/icon-gsheets.png" alt="Ilustração do Google Sheets"></div>
+    <div class="sheets-visual"><img src="public/splash-gsheets.png" alt="Ilustração do Google Sheets"></div>
     <div class="sheets-copy">
       <p class="sheets-eyebrow">BASE DE DADOS</p>
       <h2>Abrir o inventário no Google Sheets</h2>
@@ -651,7 +651,7 @@ function bricksetUpdateMarkup() {
     ? `Em execução<span class="update-running-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span>`
     : escapeHtml(bricksetLastUpdated());
   return `<section class="workspace sheets-page update-page"><article class="sheets-explainer">
-    <div class="sheets-visual update-visual"><img src="public/icon-brickset.png" alt="Logótipo Brickset"></div>
+    <div class="sheets-visual update-visual"><img src="public/splash-brickset.png" alt="Logótipo Brickset"></div>
     <div class="sheets-copy update-copy">
       <p class="sheets-eyebrow update-eyebrow">CATÁLOGO</p>
       <h2>Actualizar a base de dados Brickset</h2>
@@ -818,7 +818,7 @@ function batchTypeMarkup() {
 
 function inventoryNameMarkup() {
   return `<section class="workspace sheets-page inventory-name-page"><article class="sheets-explainer inventory-name-explainer">
-    <div class="sheets-visual inventory-visual"><img src="public/icon-inv.png?v=20261001-updated" alt="Ilustração de uma caixa LEGO com lista de inventário"></div>
+    <div class="sheets-visual inventory-visual"><img src="public/splash-inv.png?v=20261001-updated" alt="Ilustração de uma caixa LEGO com lista de inventário"></div>
     <div class="sheets-copy inventory-name-copy">
       <p class="sheets-eyebrow">INVENTÁRIO</p>
       <h2>Criar novo inventário</h2>
