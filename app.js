@@ -202,7 +202,7 @@ function formatMoneyValue(value) {
   return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
 }
 
-function consultationFilterCount(filters = activeFilterState().filters) {
+function consultationFilterCount(filters = activeFilterState().appliedFilters) {
   const stringFilters = ["set", "theme", "name", "origin", "obs", "storage"].filter(key => String(filters[key] || "").trim()).length;
   const hasValueFilter = String(filters.valueMin || "").trim() || filters.valueOperator === "between" && String(filters.valueMax || "").trim();
   return stringFilters + (hasValueFilter ? 1 : 0);
@@ -755,7 +755,7 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
   const valueControl = (key, label, placeholder, hidden = false) => `<span class="qty-control consultation-value-stepper" data-consultation-value-control="${key}"${hidden ? " hidden" : ""}><input type="number" enterkeyhint="search" data-consultation-filter="${key}" value="${escapeHtml(filters[key])}" min="0" step="1" placeholder="${placeholder}" aria-label="${label}">${consultationClearButton(key, label, filters[key])}<span class="qty-stepper"><button type="button" data-action="consultation-value-increase" data-consultation-value="${key}" aria-label="Aumentar ${label.toLocaleLowerCase("pt-PT")}">▴</button><button type="button" data-action="consultation-value-decrease" data-consultation-value="${key}" aria-label="Diminuir ${label.toLocaleLowerCase("pt-PT")}">▾</button></span></span>`;
   const origins = items.flatMap(item => item.origins);
   const storages = items.flatMap(item => item.locations.map(location => location.storage));
-  const activeFilters = consultationFilterCount(filters);
+  const activeFilters = consultationFilterCount(filterState.appliedFilters);
   return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
     <summary><span>FILTROS</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear" aria-label="Limpar filtros" title="Limpar filtros"${activeFilters > 0 ? "" : " hidden"}><span class="material-symbols-outlined" aria-hidden="true">filter_alt_off</span></button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ATIVO" : "ATIVOS"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
