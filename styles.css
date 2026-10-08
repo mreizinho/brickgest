@@ -403,8 +403,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .consultation-filters summary::after{display:none}
 .consultation-filters summary strong{gap:12px}
-.consultation-filters summary strong::after{content:"▾";font-size:32px;line-height:1}
-.consultation-filters:not([open]) summary strong::after{content:"▸"}
+.consultation-filters summary strong::after{content:"";display:block;width:16px;height:16px;flex:none;background:currentColor;clip-path:polygon(0 0,100% 0,50% 100%)}
+.consultation-filters:not([open]) summary strong::after{content:"";clip-path:polygon(0 0,100% 50%,0 100%)}
 .consultation-filters summary:hover strong{background:#9a9fa2}
 
 .consultation-input-shell,.consultation-value-stepper{position:relative}
