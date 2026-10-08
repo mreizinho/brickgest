@@ -449,3 +449,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .set-image-dialog[open]{display:grid;grid-template-rows:minmax(0,1fr) auto}
 .set-image-dialog .set-image-viewport{position:relative;inset:auto;min-width:0;min-height:0;margin:16px}
 .set-image-caption{margin:0;padding:0 20px max(20px,env(safe-area-inset-bottom));text-align:center;font-size:18px;line-height:1.4;overflow-wrap:anywhere;color:var(--ink)}
+
+.set-image-bricklink{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));height:44px;display:flex;align-items:center;z-index:1}
+.set-image-bricklink img{display:block;width:140px;max-width:calc(100vw - 100px);height:auto;max-height:44px}
+.set-image-bricklink:focus-visible{outline:3px solid #7893b2;outline-offset:3px}
+.set-image-dialog .set-image-viewport{margin-top:calc(max(12px,env(safe-area-inset-top)) + 52px)}
