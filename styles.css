@@ -454,3 +454,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .set-image-bricklink img{display:block;width:140px;max-width:calc(100vw - 100px);height:auto;max-height:44px}
 .set-image-bricklink:focus-visible{outline:3px solid #7893b2;outline-offset:3px}
 .set-image-dialog .set-image-viewport{margin-top:calc(max(12px,env(safe-area-inset-top)) + 52px)}
+
+.set-image-bricklink{gap:10px;color:var(--ink);text-decoration:none}
+.set-image-bricklink .material-symbols-outlined{font-size:24px;flex:none}
