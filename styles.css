@@ -436,3 +436,9 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-cost-group+.consultation-cost-group{grid-row:3}
 .consultation-item-summary>.consultation-pvr{grid-column:3;grid-row:4;align-self:center;margin:0;text-align:right;white-space:nowrap}
 }
+
+.consultation-summary-clear{height:38px;margin-left:auto;margin-right:8px;padding:0 12px;border:1px solid #8b9093;border-radius:7px;background:#fff;color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.consultation-summary-clear[hidden]{display:none}
+.consultation-summary-clear:hover{background:#eef0f1}
+.consultation-summary-clear:focus-visible{outline:2px solid #19334a;outline-offset:2px}
+.consultation-filters summary:has(.consultation-summary-clear:not([hidden])) strong{margin-left:0}

@@ -757,7 +757,7 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
   const storages = items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
   return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
-    <summary><span>Filtros</span><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
+    <summary><span>Filtros</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear"${activeFilters > 0 ? "" : " hidden"}>Limpar</button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
@@ -2991,6 +2991,8 @@ document.addEventListener("click", async event => {
     if (counter) {
       counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
       counter.classList.toggle("multiple-active", count > 0);
+      const summaryClear = document.querySelector("#consultation-summary-clear");
+      if (summaryClear) summaryClear.hidden = count === 0;
     }
     return;
   }
@@ -3005,6 +3007,7 @@ document.addEventListener("click", async event => {
     return;
   }
   if (action === "consultation-clear") {
+    event.preventDefault();
     activeFilterState().filters = emptyConsultationFilters();
     activeFilterState().appliedFilters = emptyConsultationFilters();
     render();
@@ -3515,6 +3518,8 @@ document.addEventListener("input", async event => {
     if (counter) {
       counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
       counter.classList.toggle("multiple-active", count > 0);
+      const summaryClear = document.querySelector("#consultation-summary-clear");
+      if (summaryClear) summaryClear.hidden = count === 0;
     }
     return;
   }
