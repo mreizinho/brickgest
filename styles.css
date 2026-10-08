@@ -323,7 +323,7 @@ html,body{height:100%;overflow:hidden}
 .menu-item-icon{display:block;width:24px;height:24px;background:currentColor;-webkit-mask:var(--menu-icon) center/contain no-repeat;mask:var(--menu-icon) center/contain no-repeat}
 
 .menu-update-icon{display:grid;place-items:center;width:24px;height:24px;font-size:20px;font-weight:800;line-height:1}
-.menu-google-icon{display:block;width:20px;height:20px;justify-self:center;align-self:center;background:currentColor;-webkit-mask:url("public/options/google-custom.svg") center/contain no-repeat;mask:url("public/options/google-custom.svg") center/contain no-repeat}
+.menu-google-icon{display:block;width:20px;height:20px;justify-self:center;align-self:center;background:currentColor;-webkit-mask:url("public/options/google.svg") center/contain no-repeat;mask:url("public/options/google.svg") center/contain no-repeat}
 
 .menu-material-icon{width:24px;height:24px;font-size:24px;line-height:1;overflow:hidden}
 .sheets-open-button .material-symbols-outlined{font-size:24px;vertical-align:middle}
