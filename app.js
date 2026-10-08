@@ -757,7 +757,7 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
   const storages = items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filters);
   return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
-    <summary><span>Filtros</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear"${activeFilters > 0 ? "" : " hidden"}>Limpar</button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ativo" : "ativos"}</strong></summary>
+    <summary><span>FILTROS</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear" aria-label="Limpar filtros" title="Limpar filtros"${activeFilters > 0 ? "" : " hidden"}><span class="material-symbols-outlined" aria-hidden="true">filter_alt_off</span></button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ATIVO" : "ATIVOS"}</strong></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
@@ -2989,7 +2989,7 @@ document.addEventListener("click", async event => {
     const count = consultationFilterCount();
     const counter = document.querySelector("#consultation-filter-count");
     if (counter) {
-      counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+      counter.textContent = `${count} ${count === 1 ? "ATIVO" : "ATIVOS"}`;
       counter.classList.toggle("multiple-active", count > 0);
       const summaryClear = document.querySelector("#consultation-summary-clear");
       if (summaryClear) summaryClear.hidden = count === 0;
@@ -3516,7 +3516,7 @@ document.addEventListener("input", async event => {
     const count = consultationFilterCount();
     const counter = document.querySelector("#consultation-filter-count");
     if (counter) {
-      counter.textContent = `${count} ${count === 1 ? "ativo" : "ativos"}`;
+      counter.textContent = `${count} ${count === 1 ? "ATIVO" : "ATIVOS"}`;
       counter.classList.toggle("multiple-active", count > 0);
       const summaryClear = document.querySelector("#consultation-summary-clear");
       if (summaryClear) summaryClear.hidden = count === 0;
