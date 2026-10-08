@@ -778,7 +778,7 @@ function consultationResultMarkup(item) {
     { quantity: item.invoiceStock, cost: item.cost, label: "Com factura", billed: true },
     { quantity: item.noInvoiceStock, cost: item.costWithoutInvoice, label: "Sem factura", billed: false },
   ].filter(group => Number(group.quantity) > 0).map(group => {
-    const icon = `<img src="public/options/${group.billed ? "fatura" : "scan-delete"}.svg" alt="" width="24" height="24">`;
+    const icon = `<img src="public/options/${group.billed ? "factura_com" : "fatura_sem"}.svg" alt="" width="24" height="24">`;
     return `<span class="consultation-cost-group" title="${group.label}" aria-label="${group.label}: ${group.quantity} unidades"><span class="consultation-invoice-icon">${icon}<span class="visually-hidden">${group.label}</span></span><b>${Number(group.quantity).toLocaleString("pt-PT")} un.</b><span class="consultation-unit-cost">${group.cost == null ? "Custo por apurar" : escapeHtml(formatMoneyValue(group.cost))}</span></span>`;
   }).join("");
   return `<article class="consultation-item">
