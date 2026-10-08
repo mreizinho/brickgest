@@ -1425,7 +1425,7 @@ function openBatchImage(item) {
   const dialog = document.createElement("dialog");
   dialog.className = "set-image-dialog";
   dialog.setAttribute("aria-label", `Imagem ${item.code} · ${item.name}`);
-  dialog.innerHTML = `<div class="set-image-viewport"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(`${item.code} · ${item.name}`)}" draggable="false"></div><form method="dialog"><button class="set-image-close" aria-label="Fechar imagem" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form>`;
+  dialog.innerHTML = `<div class="set-image-viewport"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(`${item.code} · ${item.name}`)}" draggable="false"></div><p class="set-image-caption"><strong>${escapeHtml(item.code)}</strong> · ${escapeHtml(item.name)}</p><form method="dialog"><button class="set-image-close" aria-label="Fechar imagem" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></form>`;
   const viewport = dialog.querySelector(".set-image-viewport");
   const image = viewport.querySelector("img");
   let zoom = 1, baseWidth = 0, baseHeight = 0, drag = null, pinch = null;
