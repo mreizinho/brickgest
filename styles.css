@@ -403,7 +403,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .consultation-filters summary::after{display:none}
 .consultation-filters summary strong{gap:12px}
-.consultation-filters summary strong::after{content:"▾";font-size:16px;line-height:1}
+.consultation-filters summary strong::after{content:"▾";font-size:32px;line-height:1}
 .consultation-filters:not([open]) summary strong::after{content:"▸"}
 .consultation-filters summary:hover strong{background:#9a9fa2}
 
