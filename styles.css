@@ -507,5 +507,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 @media(min-width:851px){.masthead,.masthead:not(.movement-header){padding-left:var(--screen-heading-left,24px)}.desktop-screen-heading{display:flex;align-items:center;gap:16px;height:42px;flex:none}.desktop-screen-heading h1{margin:0;font-size:20px;line-height:1;font-weight:800;letter-spacing:.8px}.desktop-screen-heading .movement-header-back{position:static;width:42px;height:42px;transform:none;flex:none}}
 .consultation-filter-grid input{font-weight:700}
 .consultation-filter-grid input::placeholder{font-weight:400}
-.desktop-home-logo{display:block;width:80px;height:80px;object-fit:contain;transform:translateY(11px)}
+.desktop-home-logo{display:block;width:80px;height:80px;object-fit:contain;transform:translateY(9px)}
 .masthead:has(.desktop-home-logo){--screen-heading-left:max(5vw,24px)}
