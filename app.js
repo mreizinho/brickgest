@@ -3349,7 +3349,6 @@ document.addEventListener("click", async event => {
     render();
     try {
       await runBricksetImport();
-      state.catalogUpdating = false;
       state.status = "Catálogo Brickset actualizado.";
       showMovementNotice("A actualização do Brickset terminou com sucesso.", "update");
       render();
@@ -3358,6 +3357,7 @@ document.addEventListener("click", async event => {
       } catch {
         showMovementNotice("O Brickset foi actualizado, mas não foi possível recarregar os dados na app. Tenta iniciar sessão novamente.", "update");
       }
+      state.catalogUpdating = false;
     } catch (error) {
       const messages = {
         AUTH_EXPIRED: "A sessão Google expirou. Inicia sessão novamente.",
