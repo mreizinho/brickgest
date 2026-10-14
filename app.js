@@ -1091,6 +1091,10 @@ function render() {
 
 function alignDesktopHeader() {
   if (window.innerWidth <= 850) return;
+  if (!state.mode) {
+    document.querySelector('.masthead')?.style.removeProperty('--screen-heading-left');
+    return;
+  }
   const panel = document.querySelector('.app-content .batch-panel, .app-content .sheets-explainer, .app-content .consultation-panel, .app-content .scan-panel');
   const header = document.querySelector('.masthead');
   if (!panel || !header) return;

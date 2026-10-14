@@ -508,3 +508,4 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-filter-grid input{font-weight:700}
 .consultation-filter-grid input::placeholder{font-weight:400}
 .desktop-home-logo{display:block;width:80px;height:80px;object-fit:contain;transform:translateY(19px)}
+.masthead:has(.desktop-home-logo){--screen-heading-left:max(5vw,24px)}
