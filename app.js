@@ -1411,7 +1411,6 @@ async function runBricksetImport() {
     scriptError.details = result.error.details?.find(detail => detail.errorMessage)?.errorMessage || result.error.message || "";
     throw scriptError;
   }
-  await loadCatalog(state.accessToken);
 }
 
 function createMovementId() {
@@ -1527,11 +1526,14 @@ function confirmRemoval(message) {
 function showMovementNotice(message, type) {
   if (movementNoticeTimer) window.clearTimeout(movementNoticeTimer);
   state.movementNotice = { message, type };
+  const app = document.querySelector("#app");
+  app?.querySelector(".app-toast")?.remove();
+  app?.insertAdjacentHTML("beforeend", `<div class="app-toast ${type}" role="status" aria-live="polite">${escapeHtml(message)}</div>`);
   movementNoticeTimer = window.setTimeout(() => {
     state.movementNotice = null;
     document.querySelector(".app-toast")?.remove();
     updateMobileConcludeButton();
-  }, 5000);
+  }, type === "update" ? 10000 : 5000);
 }
 
 function createMovementTimestamp() {
@@ -3350,6 +3352,12 @@ document.addEventListener("click", async event => {
       state.catalogUpdating = false;
       state.status = "Catálogo Brickset actualizado.";
       showMovementNotice("A actualização do Brickset terminou com sucesso.", "update");
+      render();
+      try {
+        await loadCatalog(state.accessToken);
+      } catch {
+        showMovementNotice("O Brickset foi actualizado, mas não foi possível recarregar os dados na app. Tenta iniciar sessão novamente.", "update");
+      }
     } catch (error) {
       const messages = {
         AUTH_EXPIRED: "A sessão Google expirou. Inicia sessão novamente.",
