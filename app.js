@@ -524,7 +524,7 @@ function mainHeaderMarkup(extraClass = "", menuId = "main-menu") {
   const mobileTitle = { sheets: "BASE DE DADOS", update: "CATÁLOGO", consulta: "CONSULTAS" }[state.mode] || "INÍCIO";
   const desktopTitle = isBatchMode() ? batchModeLabel() : mobileTitle;
   return `<header class="masthead${extraClass ? ` ${extraClass}` : ""}">
-    <div class="desktop-screen-heading">${state.mode ? `<button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button>` : ""}<h1>${escapeHtml(desktopTitle)}</h1></div>
+    <div class="desktop-screen-heading">${state.mode ? `<button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button><h1>${escapeHtml(desktopTitle)}</h1>` : `<img class="desktop-home-logo" src="public/favicon.svg?v=20261008-updated" alt="BrickGEST" width="80" height="80">`}</div>
     <h1 class="mobile-section-title">${mobileTitle}</h1>
     ${desktopTabsMarkup()}
     <div class="header-menu">
