@@ -1100,6 +1100,9 @@ function setupFloatingConsultationFilters() {
   anchor.append(filters);
   const marker = document.createElement('span');
   marker.className = 'consultation-filters-marker';
+  marker.style.top = 'auto';
+  marker.style.bottom = '0';
+  marker.style.height = '1px';
   anchor.prepend(marker);
   let floating = false;
   consultationFiltersObserver = new IntersectionObserver(entries => {
