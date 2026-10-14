@@ -479,3 +479,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-filters-anchor{position:relative;display:flow-root}
 .consultation-filters-marker{position:absolute;top:0;left:0;width:1px;height:54px;pointer-events:none}
 .consultation-floating-filters{left:0;right:0;width:100%;overflow-y:auto;overscroll-behavior:contain}
+
+.consultation-summary-apply{height:38px;flex:none;margin-left:8px;padding:0 16px;border:0;border-radius:12px;background:#ffd600;color:#171717;box-shadow:0 4px 0 #d0d2d3;font-size:12px;font-weight:800;letter-spacing:.7px;cursor:pointer}
+.consultation-summary-apply:active{transform:translateY(2px);box-shadow:0 2px 0 #d0d2d3}
+.consultation-floating-filters>summary{position:sticky;top:0;z-index:1;background:#fff}
+@media(max-width:480px){.consultation-filters summary{padding-left:10px;padding-right:10px}.consultation-summary-apply{padding:0 10px;font-size:11px}.consultation-filters summary strong{padding:0 8px;gap:8px}.consultation-summary-clear{margin-right:5px;width:34px}}

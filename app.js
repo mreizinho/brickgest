@@ -757,7 +757,7 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
   const storages = items.flatMap(item => item.locations.map(location => location.storage));
   const activeFilters = consultationFilterCount(filterState.appliedFilters);
   return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
-    <summary><span>FILTROS</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear" aria-label="Limpar filtros" title="Limpar filtros"${activeFilters > 0 ? "" : " hidden"}><span class="material-symbols-outlined" aria-hidden="true">filter_alt_off</span></button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ATIVO" : "ATIVOS"}</strong></summary>
+    <summary><span>FILTROS</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear" aria-label="Limpar filtros" title="Limpar filtros"${activeFilters > 0 ? "" : " hidden"}><span class="material-symbols-outlined" aria-hidden="true">filter_alt_off</span></button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ATIVO" : "ATIVOS"}</strong><button type="button" class="consultation-summary-apply" data-action="consultation-apply">CONSULTAR</button></summary>
     <form class="consultation-filter-grid" data-consultation-form>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
@@ -766,7 +766,6 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
       ${selectFilter("origin", "Origem", "Todas", origins)}
       ${filterField("obs", "Obs", "Texto nas observações")}
       <div class="consultation-value-filter"><span class="consultation-field-label">PVR</span><span class="consultation-value-controls"><span class="select-control consultation-select-control"><select data-consultation-filter="valueOperator" aria-label="Comparação do PVR">${option("less", "Menor que")}${option("greater", "Maior que")}${option("between", "Entre")}</select><span class="select-arrow" aria-hidden="true">▾</span></span>${valueControl("valueMin", "valor em euros", filters.valueOperator === "between" ? "Mínimo" : "Valor")}${valueControl("valueMax", "valor máximo em euros", "Máximo", filters.valueOperator !== "between")}</span></div>
-      <div class="consultation-actions"><button type="button" class="secondary" data-action="consultation-clear">LIMPAR</button><button type="submit" class="primary" data-action="consultation-apply">CONSULTAR</button></div>
     </form>
     <p class="consultation-filter-note">Origem e Obs pesquisam o histórico de movimentos do set.</p>
   </details>`;
@@ -3723,7 +3722,7 @@ document.addEventListener("toggle", event => {
 document.addEventListener("submit", event => {
   if (!event.target.matches?.("[data-consultation-form]")) return;
   event.preventDefault();
-  event.target.querySelector('[data-action="consultation-apply"]')?.click();
+  event.target.closest('.consultation-filters')?.querySelector('[data-action="consultation-apply"]')?.click();
 });
 
 document.addEventListener("keydown", async event => {

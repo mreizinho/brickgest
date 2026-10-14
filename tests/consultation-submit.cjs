@@ -7,10 +7,10 @@ const source=fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'u
 vm.runInContext(source,context);
 const markup=vm.runInContext('consultationFilterMarkup()',context);
 assert.ok(markup.includes('<form class="consultation-filter-grid" data-consultation-form>'));
-assert.ok(markup.includes('type="submit" class="primary" data-action="consultation-apply"'));
+assert.ok(markup.includes('type="button" class="consultation-summary-apply" data-action="consultation-apply"'));
 assert.ok(markup.includes('enterkeyhint="search"'));
 let clicks=0,prevented=0;
-const target={matches:()=>true,querySelector:()=>({click(){clicks++}})};
+const target={matches:()=>true,closest:()=>({querySelector:()=>({click(){clicks++}})})};
 listeners.submit.at(-1)({target,preventDefault(){prevented++}});
 assert.equal(clicks,1);assert.equal(prevented,1);
 listeners.submit.at(-1)({target:{matches:()=>false},preventDefault(){prevented++}});
