@@ -500,5 +500,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-summary-apply:active{transform:none;box-shadow:none}
 .consultation-summary-apply img{display:block;width:24px;height:24px}
 
-.consultation-floating-filters{background:rgba(255,255,255,.9)}
+.consultation-floating-filters{background:#fff}
 .consultation-floating-filters>summary{min-height:54px;padding-top:8px;padding-bottom:8px;background:transparent}
