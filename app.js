@@ -759,6 +759,7 @@ function consultationFilterMarkup(filterState = state.consultation, items = stat
   return `<details class="consultation-filters"${filterState.filtersOpen === false ? "" : " open"}>
     <summary><span>FILTROS</span><button type="button" id="consultation-summary-clear" class="consultation-summary-clear" data-action="consultation-clear" aria-label="Limpar filtros" title="Limpar filtros"${activeFilters > 0 ? "" : " hidden"}><span class="material-symbols-outlined" aria-hidden="true">filter_alt_off</span></button><strong id="consultation-filter-count" class="${activeFilters > 0 ? "multiple-active" : ""}">${activeFilters} ${activeFilters === 1 ? "ATIVO" : "ATIVOS"}</strong><button type="button" class="consultation-summary-apply" data-action="consultation-apply" aria-label="Aplicar filtros" title="Aplicar filtros"><img src="public/options/consultar.svg" alt="" width="24" height="24"></button></summary>
     <form class="consultation-filter-grid" data-consultation-form>
+      <button type="submit" hidden aria-hidden="true" tabindex="-1">Aplicar filtros</button>
       ${filterField("set", "Set", "Ex.: 10255")}
       ${filterField("name", "Nome", "Ex.: Assembly")}
       ${filterField("theme", "Tema", "Ex.: Icons")}
@@ -3729,6 +3730,12 @@ document.addEventListener("submit", event => {
 });
 
 document.addEventListener("keydown", async event => {
+  if (event.key === "Enter" && !event.isComposing && event.target.matches?.("input[data-consultation-filter]")) {
+    event.preventDefault();
+    event.target.blur?.();
+    event.target.closest('.consultation-filters')?.querySelector('[data-action="consultation-apply"]')?.click();
+    return;
+  }
   if (event.target.closest?.(".app-confirm-dialog, .set-image-dialog")) return;
   if (state.customArticle) {
     if (event.key === "Escape" && !state.customArticle.saving) { event.preventDefault(); state.customArticle = null; render(); }

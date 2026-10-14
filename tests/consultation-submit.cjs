@@ -24,3 +24,8 @@ assert.ok(!vm.runInContext(`consultationClearButton('valueMin','PVR',0).includes
 
 assert.ok(markup.indexOf('data-consultation-filter="theme"') < markup.indexOf('data-consultation-filter="storage"'));
 assert.ok(markup.indexOf('data-consultation-filter="storage"') < markup.indexOf('data-consultation-filter="origin"'));
+
+const searchTarget={matches:()=>true,closest:()=>({querySelector:()=>({click(){clicks++}})})};
+listeners.keydown.at(-1)({key:'Enter',target:searchTarget,preventDefault(){prevented++}});
+assert.equal(clicks,2);assert.equal(prevented,2);
+assert.ok(markup.includes('type="submit" hidden'));
