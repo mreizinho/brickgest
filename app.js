@@ -1090,29 +1090,37 @@ let consultationFiltersObserver = null;
 
 function setupFloatingConsultationFilters() {
   consultationFiltersObserver?.disconnect();
-  document.querySelector('.consultation-floating-filters')?.remove();
   if (state.mode !== 'consulta') return;
   const content = document.querySelector('.app-content');
   const filters = content?.querySelector('.consultation-filters');
   const summary = filters?.querySelector('summary');
   if (!summary) return;
-  const floating = document.createElement('details');
-  floating.className = 'consultation-filters consultation-floating-filters';
-  floating.hidden = true;
-  const floatingSummary = summary.cloneNode(true);
-  floatingSummary.dataset.action = 'consultation-floating-open';
-  floatingSummary.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
-  floating.append(floatingSummary);
-  document.querySelector('#app').append(floating);
+  const anchor = document.createElement('div');
+  anchor.className = 'consultation-filters-anchor';
+  filters.before(anchor);
+  anchor.append(filters);
+  const marker = document.createElement('span');
+  marker.className = 'consultation-filters-marker';
+  anchor.prepend(marker);
+  let floating = false;
   consultationFiltersObserver = new IntersectionObserver(entries => {
     const entry = entries[0];
-    floating.hidden = entry.isIntersecting || entry.boundingClientRect.bottom > entry.rootBounds.top;
-    const bounds = filters.getBoundingClientRect();
-    floating.style.top = `${content.getBoundingClientRect().top}px`;
-    floating.style.left = `${bounds.left}px`;
-    floating.style.width = `${bounds.width}px`;
+    const shouldFloat = !entry.isIntersecting && entry.boundingClientRect.bottom <= entry.rootBounds.top;
+    if (shouldFloat === floating) return;
+    floating = shouldFloat;
+    if (floating) {
+      anchor.style.height = `${anchor.getBoundingClientRect().height}px`;
+      filters.open = false;
+      filters.style.top = `${content.getBoundingClientRect().top}px`;
+      filters.style.maxHeight = `${content.clientHeight}px`;
+    } else {
+      anchor.style.height = '';
+      filters.style.top = '';
+      filters.style.maxHeight = '';
+    }
+    filters.classList.toggle('consultation-floating-filters', floating);
   }, { root: content, threshold: 0 });
-  consultationFiltersObserver.observe(summary);
+  consultationFiltersObserver.observe(marker);
 }
 
 let mobileConcludeObserver = null;
@@ -2949,15 +2957,6 @@ document.addEventListener("click", async event => {
   }
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (!action) return;
-  if (action === 'consultation-floating-open') {
-    event.preventDefault();
-    const filters = document.querySelector('.app-content .consultation-filters');
-    if (filters) {
-      filters.open = true;
-      filters.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    return;
-  }
   if (action === "consultation-image") {
     const code = event.target.closest("[data-set-code]")?.dataset.setCode;
     const item = state.consultation.items.find(item => String(item.code) === code);

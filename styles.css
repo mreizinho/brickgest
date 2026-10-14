@@ -475,3 +475,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .consultation-floating-filters{position:fixed;z-index:60;margin:0;background:#fff;border:1px solid #e1e3e5;box-shadow:0 4px 12px rgba(30,36,40,.15)}
 .consultation-floating-filters[hidden]{display:none}
+
+.consultation-filters-anchor{position:relative;display:flow-root}
+.consultation-filters-marker{position:absolute;top:0;left:0;width:1px;height:54px;pointer-events:none}
+.consultation-floating-filters{left:0;right:0;width:100%;overflow-y:auto;overscroll-behavior:contain}
