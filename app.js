@@ -522,7 +522,9 @@ function desktopTabsMarkup() {
 
 function mainHeaderMarkup(extraClass = "", menuId = "main-menu") {
   const mobileTitle = { sheets: "BASE DE DADOS", update: "CATÁLOGO", consulta: "CONSULTAS" }[state.mode] || "INÍCIO";
+  const desktopTitle = isBatchMode() ? batchModeLabel() : mobileTitle;
   return `<header class="masthead${extraClass ? ` ${extraClass}` : ""}">
+    <div class="desktop-screen-heading">${state.mode ? `<button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button>` : ""}<h1>${escapeHtml(desktopTitle)}</h1></div>
     <h1 class="mobile-section-title">${mobileTitle}</h1>
     ${desktopTabsMarkup()}
     <div class="header-menu">
@@ -1083,8 +1085,21 @@ function render() {
   updateLotMobileHeaderSummary();
   setupMobileConcludeButton();
   setupFloatingConsultationFilters();
+  alignDesktopHeader();
   renderBatchKeypadWindow();
 }
+
+function alignDesktopHeader() {
+  if (window.innerWidth <= 850) return;
+  const panel = document.querySelector('.app-content .batch-panel, .app-content .sheets-explainer, .app-content .consultation-panel, .app-content .scan-panel');
+  const header = document.querySelector('.masthead');
+  if (!panel || !header) return;
+  const tabs = header.querySelector('.desktop-tabs');
+  const title = header.querySelector('h1');
+  const room = window.innerWidth - (tabs?.getBoundingClientRect().width || 0) - (title?.getBoundingClientRect().width || 0) - 130;
+  header.style.setProperty('--screen-heading-left', `${Math.max(16, Math.min(panel.getBoundingClientRect().left, room))}px`);
+}
+window.addEventListener('resize', alignDesktopHeader);
 
 let consultationFiltersObserver = null;
 
