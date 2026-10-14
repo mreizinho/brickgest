@@ -53,6 +53,9 @@ assert.equal(run(`transferRows([{code:'100',qty:2,allocations:{A:2}}],{storage:'
 assert.throws(()=>run(`splitExitAllocations(separateLocations,'100',[{storage:'B',quantity:2},{storage:'B',quantity:2}])`),/LOCATION_STOCK_CHANGED/);
 run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'saida',phase:'conditions'};`);
 assert.ok(!run(`batchConditionsMarkup().includes('data-batch-field="invoice"')`));
+run(`state.batch.items=[{code:'100',name:'Test',qty:1,locations:[{storage:'A',stock:2},{storage:'B',stock:3}],allocations:{A:1}}];`);
+assert.ok(run(`batchConditionsMarkup().includes('data-batch-allocation-choice="A"')`));
+assert.ok(run(`batchConditionsMarkup().includes('value="B"')`));
 assert.ok(run(`batchConditionsMarkup().includes('Colecção') && batchConditionsMarkup().includes('Vault') && batchConditionsMarkup().includes('Venda')`));
 (async()=>{
  run(`state.accessToken='test';state.userEmail='test@example.com';state.selected={code:'100',name:'Test'};

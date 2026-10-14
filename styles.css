@@ -509,3 +509,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-filter-grid input::placeholder{font-weight:400}
 .desktop-home-logo{display:block;width:80px;height:80px;object-fit:contain;transform:translateY(9px)}
 .masthead:has(.desktop-home-logo){--screen-heading-left:max(5vw,24px)}
+.batch-exit-locations{display:grid;gap:16px;margin-top:20px}
+.batch-exit-locations>section>strong{display:block;margin-bottom:8px;font-size:14px}
+.batch-exit-locations .batch-allocations{padding:12px;border:1px solid #dfe2e4;border-radius:7px}
