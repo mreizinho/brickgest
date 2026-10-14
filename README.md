@@ -27,11 +27,11 @@ Guardar o artigo retoma o formulário do movimento ou adiciona-o ao lote/invent�
 
 ## Valor e stock inicial
 
-As entradas individuais e em lote exigem um Valor unitário de aquisição e a escolha `Com factura` ou `Sem factura`, incluindo os artigos Custom. Zero é válido; uma célula vazia significa custo por apurar. As saídas e transferências também exigem a escolha do grupo e só podem usar o stock desse grupo. Num lote, a escolha aplica-se a todos os artigos; use lotes separados para grupos diferentes. O PVR continua separado do custo.
+As entradas individuais e em lote exigem um Valor unitário de aquisição e a escolha `Com factura` ou `Sem factura`, incluindo os artigos Custom. Zero é válido; uma célula vazia significa custo por apurar. Nas saídas e transferências escolhe-se a localização física, independentemente da faturação das entradas nessa localização. Nas entradas em lote, a escolha de faturação aplica-se a todos os artigos. O PVR continua separado do custo.
 
 Na folha Movimentos, Q é `Valor`, R é `Valor sem fact.` e S é `Factura`. Para carregar stock inicial diretamente no Sheets, registe uma entrada por artigo/localização/grupo com quantidade positiva em L, `Com factura` ou `Sem factura` em S e custo unitário apenas em Q ou R, respetivamente. Preencha também os restantes campos habituais. Não escreva stock diretamente no resultado calculado de Inventário.
 
-Inventário H (`Valor`) e I (`Valor sem fact.`) calculam separadamente o custo médio móvel: `(stock anterior do grupo × custo anterior + entrada × custo unitário) / novo stock do grupo`. J e K mostram as quantidades por grupo. Só as entradas recalculam a média. As saídas mantêm o custo até o stock do grupo chegar a zero; depois o custo é limpo e uma nova entrada começa um novo custo. As transferências mantêm o grupo e não alteram a média.
+Inventário H (`Valor`) e I (`Valor sem fact.`) calculam separadamente o custo médio móvel: `(stock anterior do grupo × custo anterior + entrada × custo unitário) / novo stock do grupo`. J e K mostram as quantidades globais por grupo. Só as entradas recalculam a média. As saídas mantêm o custo mesmo quando o stock chega a zero; a primeira nova entrada após saldo zero inicia um novo custo. As transferências não alteram os saldos globais por faturação nem os custos médios. Para aplicar esta regra às fórmulas já existentes na folha Inventário, cole em H1 as duas linhas geradas por `node scripts/inventory-formulas.cjs`.
 
 Compatibilidade: os movimentos antigos sem classificação continuam no grupo `Com factura`, preservando os valores existentes em Q. Se S estiver vazio e R preenchido (incluindo zero), o movimento é tratado como `Sem factura`. Para reclassificar um movimento antigo, preencha S e coloque o custo na coluna correspondente; reveja também as saídas e transferências desse artigo para manter os saldos corretos. Custos históricos vazios apresentam `Custo por apurar` enquanto houver stock.
 
@@ -46,4 +46,4 @@ python -m http.server 3000
 ```
 
 Depois aceda a `http://localhost:3000/`.
-Nas saídas, os destinos são Colecção, Peças, Vault e Venda. Não há escolha de factura: em cada localização escolhida, retira primeiro stock sem factura e depois com factura. Quando ambos são usados, grava linhas separadas em Movimentos para preservar os saldos e custos de cada grupo.
+Nas saídas, os destinos são Colecção, Peças, Vault e Venda. Não há escolha de factura: abate primeiro o saldo global do set sem factura e depois com factura, independentemente das localizações físicas escolhidas. Quando ambos são usados, grava linhas separadas em Movimentos para preservar os saldos e custos globais de cada grupo. A coluna de localização nessas linhas identifica a retirada física; o cruzamento localização/faturação pode ter saldo negativo num grupo e não representa existências físicas. O stock físico é sempre a soma dos grupos na localização, validada antes de guardar.

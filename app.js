@@ -255,7 +255,6 @@ function inventoryCosts(rows, group = "Com factura") {
         (current.quantity * current.cost + quantity * cost) / (current.quantity + quantity);
     }
     current.quantity += quantity;
-    if (current.quantity <= 0) current.cost = null;
     costs.set(code, current);
   }
   return costs;
@@ -1929,8 +1928,8 @@ function transferRows(items, form, stockRows, transferId, timestamp, userEmail) 
       const obs = [`Transferência: ${storage} → ${destination}`, String(form.obs || "").trim()].filter(Boolean).join(" · ");
       let remaining = qty;
       for (const group of groups) {
-        const groupKey = JSON.stringify([String(item.code), storage, group]);
-        const groupStock = locationStockFromRows(stockRows, item.code, group).find(location => location.storage === storage)?.stock || 0;
+        const groupKey = JSON.stringify([String(item.code), group]);
+        const groupStock = costs.get(group).get(String(item.code))?.quantity || 0;
         const used = reservedGroups.get(groupKey) || 0;
         const quantity = Math.min(remaining, Math.max(0, groupStock - used));
         if (!quantity) continue;
@@ -2081,15 +2080,20 @@ async function appendTransferMovements(items, form, transferId) {
 
 function splitExitAllocations(rows, code, allocations) {
   const groups = ["Sem factura", "Com factura"];
-  const stocks = groups.map(group => locationStockFromRows(rows, code, group));
-  const costs = groups.map(group => inventoryCosts(rows, group).get(String(code))?.cost ?? "");
+  const balances = groups.map(group => inventoryCosts(rows, group).get(String(code)));
+  const stocks = balances.map(balance => Math.max(0, balance?.quantity || 0));
+  const costs = balances.map(balance => balance?.cost ?? "");
+  const physicalStock = new Map(locationStockFromRows(rows, code).map(location => [location.storage, location.stock]));
   return allocations.flatMap(allocation => {
+    const availablePhysical = physicalStock.get(allocation.storage) || 0;
+    if (!Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0 || allocation.quantity > availablePhysical) throw new Error("LOCATION_STOCK_CHANGED");
+    physicalStock.set(allocation.storage, availablePhysical - allocation.quantity);
     let remaining = allocation.quantity;
     const result = [];
     groups.forEach((group, index) => {
-      const available = stocks[index].find(location => location.storage === allocation.storage)?.stock || 0;
-      const quantity = Math.min(remaining, available);
+      const quantity = Math.min(remaining, stocks[index]);
       if (quantity > 0) result.push({...allocation, quantity, group, cost:costs[index]});
+      stocks[index] -= quantity;
       remaining -= quantity;
     });
     if (remaining > 0) throw new Error("LOCATION_STOCK_CHANGED");
