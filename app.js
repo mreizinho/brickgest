@@ -255,6 +255,7 @@ function inventoryCosts(rows, group = "Com factura") {
         (current.quantity * current.cost + quantity * cost) / (current.quantity + quantity);
     }
     current.quantity += quantity;
+    if (current.quantity <= 0) current.cost = null;
     costs.set(code, current);
   }
   return costs;
