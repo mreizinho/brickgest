@@ -489,3 +489,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .consultation-floating-filters>summary{padding-left:34px;padding-right:34px}
 
 @media(max-width:850px){.consultation-filters summary,.consultation-floating-filters>summary{padding-left:16px;padding-right:16px}}
+
+.consultation-filters:not(.consultation-floating-filters){margin-top:8px}
+.consultation-summary-apply{width:38px;padding:0;display:flex;align-items:center;justify-content:center}
+.consultation-summary-apply .material-symbols-outlined{font-size:24px}
