@@ -591,7 +591,7 @@ function optionsMarkup() {
         <div class="home-actions">
           ${homeButton("lote", "MOVIMENTOS", "barcode")}
           ${homeButton("consulta", "CONSULTAS", "consultar")}
-          ${homeButton("vendas", "VENDAS", "vendas", false)}
+          ${homeButton("vendas", "VENDAS", "vendas")}
         </div>
       </div>
     </article>
@@ -1069,6 +1069,7 @@ function resultMarkup(item) {
 }
 
 function render() {
+  if (state.mode === "vendas" && typeof salesMarkup === "function") { renderSalesPage(); return; }
   if (isBatchKeypadPoppedOut() && (!isBatchMode() || state.batch.phase !== "scan")) closeBatchKeypadPopout(false);
   const content = !state.mode ? optionsMarkup() : state.mode === "movimentos" ? movementsMarkup() : state.mode === "sheets" ? googleSheetsMarkup() : state.mode === "update" ? bricksetUpdateMarkup() : state.mode === "consulta" ? consultationMarkup() : isBatchMode() ? batchMarkup() : state.mode === "transferencia" && !state.selected ? transferSelectionMarkup() : state.selected && (state.mode === "entrada" || usesSourceStock(state.mode)) ? foundMarkup() : state.mode === "entrada" || usesSourceStock(state.mode) ? keypadMarkup() : genericModeMarkup();
   const notice = state.movementNotice ? `<div class="app-toast ${state.movementNotice.type}" role="status">${escapeHtml(state.movementNotice.message)}</div>` : "";

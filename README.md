@@ -1,5 +1,17 @@
 # BrickGEST
 
+## Vendas
+
+Vendas permite juntar vários artigos, escolher quantidades por localização e indicar o preço unitário de venda (independente do custo de aquisição). Depois escolhe-se Factura ou Recibo e preenchem-se Nome, Morada, Email, Contacto e NIF do cliente, além da identificação do vendedor para impressão.
+
+Ao confirmar, as saídas de Movimentos, o cabeçalho em Vendas e os artigos em VendasLinhas são acrescentados num único pedido atómico `spreadsheets.batchUpdate`. Movimentos U/V guardam ID Venda / ID Linha Venda. Cada retirada mantém o seu ID de movimento e a classificação de custo existente. As folhas e cabeçalhos são preparados automaticamente, com verificação de conflitos; a conta precisa de acesso de edição. O stock é revalidado antes da gravação, mas o Sheets não fornece bloqueio entre utilizadores: vendas simultâneas exigem coordenação para evitar ultrapassar stock.
+
+Vendas guarda ID, data em Lisboa, opção de documento, dados do cliente, total, estado TOConline, documento TOConline, utilizador e identificação do vendedor. VendasLinhas guarda ID Linha, ID Venda, artigo, nome, EAN, quantidade, preço unitário e subtotal. O cálculo monetário usa cêntimos. Os dados são escritos como valores literais, preservando zeros iniciais e impedindo execução de fórmulas introduzidas em campos de texto.
+
+Consultar vendas permite filtrar datas inclusivas, tipo de documento e estado TOConline, exportar CSV e reimprimir. A opção Factura começa como Pendente; a integração e emissão fiscal no TOConline ficam para uma fase futura. O impresso é um comprovativo interno e não substitui uma factura ou recibo fiscal. Os preços correspondem aos valores finais introduzidos, sem cálculo de IVA nesta fase.
+
+Um envio sem resposta mantém a venda bloqueada até verificar a gravação pelo ID. O rascunho é conservado apenas na sessão do separador, incluindo os dados do cliente para recuperar a operação após recarregar; feche o separador quando terminar num computador partilhado. Não existe envio automático de dados ao TOConline.
+
 Site: https://mreizinho.github.io/brickgest/
 
 Repositório: https://github.com/mreizinho/brickgest
