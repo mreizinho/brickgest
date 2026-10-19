@@ -30,7 +30,8 @@ assert.equal(run('filteredSales().length'),1);
 assert.equal(run('filteredSales()[0][0]'),'b');
 run(`salesState.from='';salesState.to='';salesState.filter='Factura';salesState.integration='Pendente';`);
 assert.equal(run('filteredSales().length'),1);
-assert.ok(run('salesMarkup().includes("VENDAS")'));
+assert.ok(run('salesMarkup().includes("Nova Venda")'));
+assert.equal(run('salesTitle()'),'VENDAS');
 (async()=>{
   run(`let batches=[];prepareSalesSheets=async()=>['Movimentos','Vendas','VendasLinhas'].map((title,sheetId)=>({properties:{title,sheetId}}));saleValues=async()=>[];loadMovementStockRows=async()=>stockRows;salesRequest=async(path,body)=>{batches.push(body);return {};};salesState.id='';salesState.phase='customer';`);
   await run('saveSale()');

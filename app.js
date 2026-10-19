@@ -548,10 +548,10 @@ function lotMobileHeaderMarkup() {
 }
 
 function headerMarkup() {
-  if (["movimentos", "entrada", "saida", "transferencia", "consulta"].includes(state.mode)) {
+  if (["movimentos", "entrada", "saida", "transferencia", "consulta", "vendas"].includes(state.mode)) {
     return `<header class="masthead movement-header">
       <button class="movement-header-back" data-action="home" aria-label="Ir para o Início">${icons.back}</button>
-      <h1>${state.mode === "consulta" ? "CONSULTAS" : state.mode === "movimentos" ? "MOVIMENTOS" : movementLabel(state.mode).toLocaleUpperCase("pt-PT")}</h1>
+      <h1>${state.mode === "vendas" ? (typeof salesTitle === "function" ? salesTitle() : "VENDAS") : state.mode === "consulta" ? "CONSULTAS" : state.mode === "movimentos" ? "MOVIMENTOS" : movementLabel(state.mode).toLocaleUpperCase("pt-PT")}</h1>
       ${desktopTabsMarkup()}
       <div class="header-menu movement-header-menu">
         <button class="hamburger-button" data-close-hover-ready="${state.menuCloseHoverReady}" data-action="toggle-menu" aria-expanded="${state.menuOpen}" aria-controls="movement-menu" aria-label="${state.menuOpen ? "Fechar" : "Abrir"} menu">${state.menuOpen ? icons.close : icons.menu}</button>
@@ -2358,7 +2358,8 @@ function logoutGoogle() {
   render();
 }
 
-async function lookup() {
+async function lookup(fromScanner = false) {
+  if (state.mode === "vendas" && typeof addSaleCode === "function") { await addSaleCode(state.query, fromScanner); return; }
   const found = findSet(state.query);
   state.photoMetaVisible = true;
   if (!found && state.query) {
@@ -2851,7 +2852,7 @@ async function openBarcodeScanner(addHistory = true) {
               state.scannerOpen = false;
               state.scannerStatus = "";
               writeAppHistory("mode", true);
-              await lookup();
+              await lookup(true);
               return;
             }
             if (lastUnknownEan !== ean) {
@@ -2956,6 +2957,7 @@ document.addEventListener("click", async event => {
   if (modeButton && !modeButton.disabled) {
     if (modeButton.dataset.mode === "transferencia") { await startTransferSelection(true); return; }
     state.mode = modeButton.dataset.mode;
+    if (state.mode === "vendas" && typeof openSalesMenu === "function") openSalesMenu();
     state.query = "";
     state.selected = null;
     state.menuOpen = false;
