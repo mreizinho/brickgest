@@ -12,34 +12,149 @@ const salesState = { items: [], customer: {}, type: "", phase: "scan", pending: 
 // Keep an in-flight submission recoverable across reloads, for the current browser tab.
 try { const draft=JSON.parse(sessionStorage.getItem("brickGestSaleDraft")||"null");if(draft)Object.assign(salesState,draft,{busy:false,error:""}); } catch { /* No recoverable draft. */ }
 if (salesState.phase === "items") salesState.phase = salesState.items.length ? "review" : "scan";
+if(salesState.phase==="customer" && !["Factura","Recibo"].includes(salesState.type) && !salesState.uncertain)salesState.phase="document";
 salesState.showMenu = true;
+salesState.confirmNew = false;
+function hasSaleInProgress() { return !salesState.saved && Boolean(salesState.items.length || salesState.pending || salesState.uncertain); }
+function startNewSale() {
+  if(salesState.uncertain)return;
+  state.query="";
+  Object.assign(salesState,{items:[],customer:{},type:"",phase:"scan",resumePhase:"scan",pending:null,id:"",saved:null,error:"",owner:state.userEmail,showMenu:false,confirmNew:false,submittedAt:0});
+  persistSaleDraft();render();
+}
+function resumeSaleDraft() {
+  const s=salesState;
+  s.confirmNew=false;s.showMenu=false;
+  if(s.uncertain)s.phase="customer";
+  else if(s.pending)s.phase="scan";
+  else if(!["scan","review","document","customer"].includes(s.phase))s.phase=["scan","review","document","customer"].includes(s.resumePhase)?s.resumePhase:"review";
+  if(s.phase==="customer" && !["Factura","Recibo"].includes(s.type) && !s.uncertain)s.phase="document";
+  persistSaleDraft();render();
+}
+function requestNewSale() {
+  if(salesState.uncertain){resumeSaleDraft();return;}
+  if(hasSaleInProgress()) {
+    salesState.confirmNew=true;salesState.showMenu=false;render();
+  } else startNewSale();
+}
+function saleInProgressMarkup() {
+  const s=salesState,units=saleUnitCount()+(s.pending?Object.values(s.pending.item.allocations).reduce((sum,q)=>sum+Number(q||0),0):0);
+  return `<section class="workspace batch-page"><section class="batch-panel"><div class="batch-heading"><h2>Já existe uma venda em progresso</h2><span>${units} ${units===1?"unidade preparada":"unidades preparadas"}. Queres continuar essa venda ou começar uma nova?</span></div><p>Começar uma nova venda substitui o rascunho atual.</p><div class="batch-actions sale-resume-actions"><button type="button" class="secondary" data-sale-action="continue-draft">CONTINUAR VENDA</button><button type="button" class="primary" data-sale-action="restart-draft">COMEÇAR NOVA</button></div></section></section>`;
+}
 function openSalesMenu() { salesState.showMenu=true;state.query=""; }
 function salesTitle() {
   if(salesState.showMenu)return "VENDAS";
+  if(salesState.confirmNew)return "VENDA EM PROGRESSO";
   if(salesState.pending)return "PREÇO DE VENDA";
-  return {scan:"NOVA VENDA",review:"REVER VENDA",customer:"DOCUMENTO E CLIENTE",list:"CONSULTAR VENDAS",saved:"VENDA REGISTADA"}[salesState.phase] || "VENDAS";
+  return {scan:"NOVA VENDA",review:"REVER VENDA",document:"DOCUMENTO",customer:"DADOS DO CLIENTE",list:"CONSULTAR VENDAS",saved:"VENDA REGISTADA"}[salesState.phase] || "VENDAS";
 }
 function salesMenuMarkup() {
-  const recovery=salesState.uncertain||salesState.pending;
-  return `<section class="workspace batch-page"><section class="batch-panel"><div class="batch-heading"><h2>O que queres fazer?</h2><span>Prepara uma nova venda ou consulta as vendas registadas.</span></div><div class="home-actions movement-actions batch-movement-actions"><button type="button" class="sheets-open-button home-action home-action-entrada" data-sale-action="new" ${recovery?"disabled":""}>Nova Venda<img src="public/options/entrada.svg?v=add-box-black" alt="" width="28" height="28"></button><button type="button" class="sheets-open-button home-action home-action-transferencia" data-sale-action="list" ${recovery?"disabled":""}>Consultar<img src="public/options/consultar.svg" alt="" width="28" height="28"></button></div>${recovery?'<p>Existe uma leitura ou gravação por concluir.</p><button type="button" class="sheets-open-button" data-sale-action="resume">Retomar venda</button>':""}</section></section>`;
+  const recovery=salesState.uncertain;
+  return `<section class="workspace batch-page"><section class="batch-panel"><div class="batch-heading"><h2>O que queres fazer?</h2><span>Prepara uma nova venda ou consulta as vendas registadas.</span></div><div class="home-actions movement-actions batch-movement-actions"><button type="button" class="sheets-open-button home-action home-action-entrada" data-sale-action="new" ${recovery?"disabled":""}>NOVA VENDA<span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span></button><button type="button" class="sheets-open-button home-action home-action-transferencia" data-sale-action="list" ${recovery?"disabled":""}>CONSULTAR VENDAS<img src="public/options/consultar.svg" alt="" width="28" height="28"></button></div>${recovery?'<p>Existe uma leitura ou gravação por concluir.</p><button type="button" class="sheets-open-button" data-sale-action="resume">Retomar venda</button>':""}</section></section>`;
 }
 function persistSaleDraft() {
+  if(!salesState.saved && ["scan","review","document","customer"].includes(salesState.phase))salesState.resumePhase=salesState.phase;
   try { const {rows,lines,busy,error,...draft}=salesState;sessionStorage.setItem("brickGestSaleDraft",JSON.stringify(draft)); } catch { /* Storage may be unavailable. */ }
 }
 const saleMoney = cents => formatMoneyValue(cents / 100);
 const saleTotal = items => items.reduce((sum,item) => sum + Math.round(Number(item.price) * 100) * Object.values(item.allocations).reduce((a,b) => a + Number(b || 0),0),0);
 function saleUnitCount() { return salesState.items.reduce((sum,item)=>sum+Object.values(item.allocations).reduce((a,b)=>a+Number(b||0),0),0); }
+function salesScanMarkup() {
+  const s=salesState,e=escapeHtml,units=saleUnitCount(),references=new Set(s.items.map(item=>item.code)).size;
+  const latest=s.items.length?`<div class="batch-mini-list">${s.items.slice(-4).reverse().map(item=>`<div><span><b>${e(item.code)}</b><small>${e(item.name)}</small></span><strong>${Object.values(item.allocations).reduce((sum,q)=>sum+Number(q||0),0)} un.</strong><strong class="sales-mini-price">${saleMoney(Math.round(Number(item.price)*100))}</strong></div>`).join("")}</div>`:'<p class="batch-empty">Ainda não foi lido nenhum conjunto.</p>';
+  return `<section class="workspace batch-page"><section class="batch-panel batch-scan-panel sales-scan-panel"><div class="batch-heading"><p>VENDA</p><h2>Ler ${units>1?"conjuntos":"conjunto"}</h2><span>Cada leitura adiciona uma unidade e pede o preço de venda.</span></div>${s.busy?'<p role="status">A processar…</p>':""}${s.error?`<p class="sales-error" role="alert">${e(s.error)}</p>`:""}<fieldset class="sales-scan-controls" ${s.busy?"disabled":""}><div class="batch-keypad-shell"><div class="entry-keypad lote batch-keypad">${keypadControlsMarkup()}</div></div></fieldset><hr class="batch-keypad-divider"><div class="batch-counter"><strong>${units}</strong><span>${units===1?"unidade":"unidades"}</span><i></i><strong>${references}</strong><span>${references===1?"referência":"referências"}</span></div><p class="batch-mini-title">Últimas leituras</p>${latest}<p class="sales-scan-total">Total: ${saleMoney(saleTotal(s.items))}</p><div class="batch-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel" ${s.busy?"disabled":""}>CANCELAR</button><button type="button" class="secondary" data-sale-action="review" ${references&&!s.busy?"":"disabled"}>PAUSAR / REVER</button><button type="button" class="primary" data-sale-action="checkout" ${references&&!s.busy?"":"disabled"}>CONCLUIR</button></div></section></section>`;
+}
+function saleSetCardMarkup(item,index,readonly=false) {
+  const e=escapeHtml,quantity=Object.values(item.allocations).reduce((sum,q)=>sum+Number(q||0),0);
+  const remove=index==="pending"?"cancel-price":"remove";
+  const details=`<b>${e(item.code)} · ${e(item.name)}</b><small>${e(item.theme||"")}${item.year?` · ${e(item.year)}`:""}</small><strong class="sale-item-price">${item.price===""?"Definir preço unitário":`${saleMoney(Math.round(Number(item.price)*100))} / un.`}</strong>`;
+  const detailBlock=readonly?`<span class="sale-item-details">${details}</span>`:`<button type="button" class="sale-item-details" data-sale-action="edit-price" data-index="${index}" aria-label="Alterar preço de ${e(item.code)}">${details}</button>`;
+  return `<div class="batch-item-main">${readonly?'<span aria-hidden="true"></span>':`<button type="button" class="batch-remove-item" data-sale-action="${remove}" data-index="${index}" aria-label="Remover ${e(item.code)}">×</button>`}${item.imageUrl?`<button type="button" class="batch-item-image batch-image-button" data-sale-action="image" data-index="${index}" aria-label="Ver imagem de ${e(item.code)}"><img src="${e(item.imageUrl)}" alt=""></button>`:'<span class="batch-item-image">#</span>'}${detailBlock}<div class="batch-inline-qty${readonly?" sale-qty-readonly":""}"><strong>${quantity}</strong>${readonly?"":`<div><button type="button" data-sale-action="qty-increase" data-index="${index}" aria-label="Aumentar quantidade de ${e(item.code)}">▴</button><button type="button" data-sale-action="qty-decrease" data-index="${index}" aria-label="Diminuir quantidade de ${e(item.code)}">▾</button></div>`}</div></div>`;
+}
+function setSaleItemPrice(index,price) {
+  const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)];
+  if(!item)return;
+  validateSaleItems([{...item,price}]);
+  item.price=String(price);persistSaleDraft();render();
+}
+function openSalePriceDialog(index) {
+  const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)];
+  if(!item||salesState.busy||salesState.uncertain||document.querySelector(".sale-price-dialog"))return;
+  const dialog=document.createElement("dialog"),previousFocus=document.activeElement,e=escapeHtml;
+  dialog.className="sale-price-dialog app-confirm-dialog";
+  dialog.setAttribute("aria-labelledby","sale-price-dialog-title");
+  dialog.innerHTML=`<h2 id="sale-price-dialog-title">Alterar preço unitário</h2><p>${e(item.code)} · ${e(item.name)}</p><form><label for="sale-dialog-price">Preço unitário de venda (€)<input id="sale-dialog-price" type="number" min="0" step="0.01" inputmode="decimal" required value="${e(item.price)}"></label><p class="sales-error" role="alert" hidden></p><div class="batch-actions"><button type="button" class="secondary">CANCELAR</button><button type="submit" class="primary">GUARDAR PREÇO</button></div></form>`;
+  dialog.querySelector(".secondary").addEventListener("click",()=>dialog.close());
+  dialog.querySelector("form").addEventListener("submit",event=>{
+    event.preventDefault();
+    try {setSaleItemPrice(index,dialog.querySelector("input").value);dialog.close();}
+    catch(error){const message=dialog.querySelector("[role='alert']");message.textContent=error.message;message.hidden=false;}
+  });
+  dialog.addEventListener("close",()=>{
+    dialog.remove();
+    if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
+    else document.querySelector(`[data-sale-action="edit-price"][data-index="${index}"]`)?.focus({preventScroll:true});
+  },{once:true});
+  document.body.append(dialog);dialog.showModal();dialog.querySelector("input").focus();dialog.querySelector("input").select();
+}
+function saleLocationMarkup(item,index,readonly=false) {
+  const e=escapeHtml,pending=index==="pending";
+  return item.locations.map((loc,j)=>{
+    const id=`sale-location-${index}-${j}`;
+    return `<div class="sale-location-field"><label for="${id}">${e(loc.storage)} (${loc.stock} disponíveis${pending?" nesta leitura":""})</label><div class="batch-inline-qty sale-location-qty${readonly?" sale-qty-readonly":""}"><input id="${id}" class="sale-location-input" type="number" inputmode="numeric" min="0" max="${loc.stock}" step="1" required ${pending?`data-sale-pending-location="${j}"`:`data-sale-item="${index}" data-location="${j}"`} value="${item.allocations[loc.storage]||0}" ${readonly?"readonly":""}>${readonly?"":`<div><button type="button" data-sale-action="location-increase" data-index="${index}" data-location="${j}" aria-label="Aumentar quantidade em ${e(loc.storage)}">▴</button><button type="button" data-sale-action="location-decrease" data-index="${index}" data-location="${j}" aria-label="Diminuir quantidade em ${e(loc.storage)}">▾</button></div>`}</div></div>`;
+  }).join("");
+}
+function setSaleLocation(index,locationIndex,requested) {
+  const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)],loc=item?.locations[Number(locationIndex)];
+  if(!loc)return;
+  const capacity=location=>Math.max(0,location.stock-(index==="pending"?0:salesState.items.filter(other=>other!==item&&other.code===item.code).reduce((sum,other)=>sum+Number(other.allocations[location.storage]||0),0)));
+  const current=Number(item.allocations[loc.storage]||0);
+  if(!Number.isSafeInteger(Number(requested)))return current;
+  const target=Math.min(capacity(loc),Math.max(0,Number(requested)));
+  let remaining=Math.abs(target-current),moved=0;
+  for(const other of item.locations) {
+    if(other.storage===loc.storage)continue;
+    const allocated=Number(item.allocations[other.storage]||0);
+    const available=target>current?allocated:Math.max(0,capacity(other)-allocated);
+    const transfer=Math.min(remaining,available);
+    if(!transfer)continue;
+    item.allocations[other.storage]=allocated+(target>current?-transfer:transfer);
+    moved+=transfer;remaining-=transfer;
+    if(!remaining)break;
+  }
+  item.allocations[loc.storage]=current+(target>current?moved:-moved);
+  return item.allocations[loc.storage];
+}
+function adjustSaleLocation(index,locationIndex,delta) {
+  const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)],loc=item?.locations[Number(locationIndex)];
+  if(!loc)return;
+  setSaleLocation(index,locationIndex,Number(item.allocations[loc.storage]||0)+delta);
+  salesState.error="";persistSaleDraft();render();
+}
 function saleItemMarkup(item,index,readonly=false) {
   const e=escapeHtml;
-  return `<article><strong>${e(item.code)} — ${e(item.name)}</strong><div class="sales-grid"><label>Preço unitário de venda (€)<input type="number" min="0" step="0.01" required data-sale-price="${index}" value="${e(item.price)}" ${readonly?"readonly":""}></label>${item.locations.map((loc,j)=>`<label>${e(loc.storage)} (${loc.stock} disponíveis)<input type="number" min="0" max="${loc.stock}" step="1" required data-sale-item="${index}" data-location="${j}" value="${item.allocations[loc.storage]||0}" ${readonly?"readonly":""}></label>`).join("")}</div>${readonly?"":`<button type="button" data-sale-action="remove" data-index="${index}">Remover</button>`}</article>`;
+  return `<article class="batch-item sale-item">${saleSetCardMarkup(item,index,readonly)}<div class="sale-item-fields"><div class="sales-grid">${saleLocationMarkup(item,index,readonly)}</div></div></article>`;
 }
 function salePriceMarkup() {
   const item=salesState.pending.item,e=escapeHtml;
-  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><h2>Preço de venda</h2><p><strong>${e(item.code)} — ${e(item.name)}</strong></p><label>Preço unitário de venda (€)<input id="sale-pending-price" type="number" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"></label><div class="sales-grid">${item.locations.map((loc,j)=>`<label>${e(loc.storage)} (${loc.stock} disponíveis nesta leitura)<input type="number" min="0" max="${loc.stock}" step="1" required data-sale-pending-location="${j}" value="${item.allocations[loc.storage]||0}"></label>`).join("")}</div><div class="sales-toolbar"><button type="button" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
+  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><h2>Preço de venda</h2><article class="batch-item sale-item">${saleSetCardMarkup(item,"pending")}<div class="sale-item-fields"><label>Preço unitário de venda (€)<input class="sale-price-input" id="sale-pending-price" type="number" inputmode="decimal" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"></label><div class="sales-grid">${saleLocationMarkup(item,"pending")}</div></div></article><div class="batch-actions sale-price-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit" class="primary">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
+}
+function adjustSaleQuantity(index,delta) {
+  const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)];
+  if(!item)return;
+  const quantity=Object.values(item.allocations).reduce((sum,q)=>sum+Number(q||0),0);
+  if(delta<0&&quantity<=1)return;
+  const location=delta>0?item.locations.find(loc=>{
+    const elsewhere=salesState.items.filter(other=>other!==item&&other.code===item.code).reduce((sum,other)=>sum+Number(other.allocations[loc.storage]||0),0);
+    return Number(item.allocations[loc.storage]||0)<loc.stock-(index==="pending"?0:elsewhere);
+  }):[...item.locations].reverse().find(loc=>Number(item.allocations[loc.storage]||0)>0);
+  if(!location){salesState.error="Não há mais stock disponível para aumentar a quantidade.";render();return;}
+  item.allocations[location.storage]=Number(item.allocations[location.storage]||0)+delta;
+  salesState.error="";persistSaleDraft();render();
 }
 async function addSaleCode(rawCode, fromScanner = false) {
   const s=salesState;
-  if(s.showMenu || s.busy || s.pending || s.uncertain || s.phase!=="scan")return;
+  if(s.showMenu || s.confirmNew || s.busy || s.pending || s.uncertain || s.phase!=="scan")return;
   const code=String(rawCode||"").trim();
   state.query="";
   await salesWork(async()=>{
@@ -71,12 +186,14 @@ function confirmSalePrice() {
   s.pending=null;s.error="";persistSaleDraft();render();
   if(resumeScanner && state.mode==="vendas")void openBarcodeScanner();
 }
-function salesMarkup() {
+function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState.type))throw new Error("Seleciona Factura ou Recibo para continuar.");  salesState.phase="customer";persistSaleDraft();}function salesMarkup() {
   const s = salesState, e = escapeHtml;
   if(s.showMenu)return salesMenuMarkup();
   if (!state.loggedIn) return `<section class="sales-page"><h1>VENDAS</h1><p>Inicia sessão para gerir as vendas.</p><button data-action="login">Login Google</button><button data-action="home">Início</button></section>`;
+  if(s.confirmNew)return saleInProgressMarkup();
   if (s.owner && s.owner !== state.userEmail) return `<section class="sales-page"><h1>VENDAS</h1><p>Existe um rascunho de outra conta nesta sessão. Entra com essa conta para o recuperar ou inicia uma nova venda.</p><button data-sale-action="new">Nova venda</button><button data-action="home">Início</button></section>`;
-  const toolbar = `<div class="sales-toolbar"><button data-sale-action="menu">Menu de vendas</button></div>`;
+  if(s.phase==="scan"&&!s.pending&&!s.uncertain)return salesScanMarkup();
+
   let body;
   if (s.phase === "list") {
     const rows = filteredSales();
@@ -85,14 +202,17 @@ function salesMarkup() {
     body = `<article><h2>Venda registada</h2><p>${e(s.saved[0])}</p><p>${e(s.saved[3])} · ${saleMoney(Math.round(Number(s.saved[8])*100))}</p><button data-sale-action="print">Imprimir / guardar PDF</button></article>`;
   } else if (s.pending) {
     body = salePriceMarkup();
-  } else if (s.phase === "scan") {
-    body = `<section class="scan-panel"><div class="entry-keypad saida">${keypadControlsMarkup()}</div></section><p>Cada leitura abre o preço de venda e adiciona uma unidade.</p><p>${s.items.length} referências · ${saleUnitCount()} unidades · ${saleMoney(saleTotal(s.items))}</p><div class="sales-toolbar"><button data-sale-action="review" ${s.items.length ? "" : "disabled"}>PAUSAR / REVER</button><button data-sale-action="checkout" ${s.items.length ? "" : "disabled"}>CONCLUIR</button></div>`;
+
   } else {
-    const reviewing = s.phase === "review";
-    body = `<form id="sales-form"><fieldset ${s.busy||s.uncertain?"disabled":""}>${reviewing ? "<h2>Rever venda</h2>" : "<h2>Documento e cliente</h2>"}${s.items.map((item,i)=>saleItemMarkup(item,i,!reviewing)).join("")}<p class="sales-total" id="sale-total">Total: ${saleMoney(saleTotal(s.items))}</p>${reviewing ? `<div class="sales-toolbar"><button type="button" data-sale-action="scan">CONTINUAR LEITURA</button><button type="submit" name="checkout">CONCLUIR</button></div>` : `<div class="sales-grid"><label>Documento<select required data-sale-field="type"><option value="">Selecionar…</option>${["Factura","Recibo"].map(v=>`<option ${s.type===v?"selected":""}>${v}</option>`).join("")}</select></label></div>${s.type ? `<h2>Dados do cliente</h2><div class="sales-grid">${[["name","Nome","text"],["address","Morada","text"],["email","Email","email"],["phone","Contacto","tel"],["tax","NIF","text"]].map(([key,label,type])=>`<label>${label}<input type="${type}" required maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div><p>Confirma os artigos, valores e dados acima antes de guardar.</p><small>Comprovativo interno — não serve de factura. A opção Factura fica pendente de emissão no TOConline.</small>`:""}<div class="sales-toolbar"><button type="button" data-sale-action="edit">REVER VENDA</button>${s.type?`<button type="submit" name="save">CONFIRMAR VENDA</button>`:""}</div>`}</fieldset></form>`;
+    const reviewing=s.phase==="review",customer=s.phase==="customer";
+    const customerFields=`<div class="sales-grid">${[["name","Nome","text"],["address","Morada","text"],["email","Email","email"],["phone","Contacto","tel"],["tax","NIF","text"]].map(([key,label,type])=>`<label>${label}<input type="${type}" required maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
+    const summary=customer?`<p>Documento: <strong>${e(s.type)}</strong></p>`:s.items.map((item,i)=>saleItemMarkup(item,i,!reviewing)).join("");
+    const actions=reviewing?`<button type="button" class="secondary" data-sale-action="scan">CONTINUAR LEITURA</button><button type="submit" class="primary" name="checkout">CONCLUIR</button>`:customer?`<button type="button" class="secondary" data-sale-action="document-back">VOLTAR AO DOCUMENTO</button><button type="submit" class="primary" name="save">CONFIRMAR VENDA</button>`:`<button type="button" class="secondary" data-sale-action="edit">REVER VENDA</button><button type="submit" class="primary" name="customer" ${["Factura","Recibo"].includes(s.type)?"":"disabled"}>CONTINUAR</button>`;
+    const documentField=`<div class="sales-grid"><label>Documento<select required data-sale-field="type"><option value="">Selecionar…</option>${["Factura","Recibo"].map(v=>`<option ${s.type===v?"selected":""}>${v}</option>`).join("")}</select></label></div>`;
+    body=`<form id="sales-form"><fieldset ${s.busy||s.uncertain?"disabled":""}>${summary}<p class="sales-total" id="sale-total">Total: ${saleMoney(saleTotal(s.items))}</p>${reviewing?"":customer?customerFields:documentField}${customer?'<p>Confirma os dados do cliente antes de guardar a venda.</p><small>Comprovativo interno — não serve de factura. A opção Factura fica pendente de emissão no TOConline.</small>':""}<div class="batch-actions sale-review-actions">${actions}</div></fieldset></form>`;
   }
   if (s.uncertain) body += `<p>O resultado do envio não foi confirmado. Verifica o registo antes de tentar novamente.</p><button data-sale-action="verify">Verificar gravação</button>`;
-  return `<section class="sales-page">${s.busy?"<p role='status'>A processar…</p>":s.pending||s.uncertain?"":toolbar}${s.error?`<p class="sales-error" role="alert">${e(s.error)}</p>`:""}${body}</section>`;
+  return `<section class="sales-page">${s.busy?"<p role='status'>A processar…</p>":""}${s.error?`<p class="sales-error" role="alert">${e(s.error)}</p>`:""}${body}</section>`;
 }
 function renderSalesPage() {
   const app=document.querySelector("#app");
@@ -195,11 +315,20 @@ document.addEventListener("input",event=>{
   const el=event.target,s=salesState;
   if (state.mode!=="vendas" || s.busy || s.uncertain) return;
   if (el.dataset.salePendingPrice !== undefined && s.pending) s.pending.item.price=el.value;
-  if (el.dataset.salePendingLocation !== undefined && s.pending) {const item=s.pending.item;item.allocations[item.locations[Number(el.dataset.salePendingLocation)].storage]=el.value;}
+  if (el.dataset.salePendingLocation !== undefined && s.pending) setSaleLocation("pending",Number(el.dataset.salePendingLocation),el.value);
   if (el.dataset.saleCustomer) s.customer[el.dataset.saleCustomer]=el.value;
   if (el.dataset.saleField) {s[el.dataset.saleField]=el.value;if (["type","from","to","filter","integration"].includes(el.dataset.saleField)) render();}
   if (el.dataset.salePrice!==undefined) s.items[Number(el.dataset.salePrice)].price=el.value;
-  if (el.dataset.saleItem!==undefined) {const item=s.items[Number(el.dataset.saleItem)];item.allocations[item.locations[Number(el.dataset.location)].storage]=el.value;}
+  if (el.dataset.saleItem!==undefined) setSaleLocation(el.dataset.saleItem,Number(el.dataset.location),el.value);
+  if(el.dataset.saleItem!==undefined || el.dataset.salePendingLocation!==undefined) {
+    const item=el.dataset.salePendingLocation!==undefined?s.pending?.item:s.items[Number(el.dataset.saleItem)];
+    const quantity=el.closest(".sale-item")?.querySelector(".batch-inline-qty>strong");
+    if(item&&quantity)quantity.textContent=Object.values(item.allocations).reduce((sum,q)=>sum+Number(q||0),0);
+    if(item)el.closest(".sale-item")?.querySelectorAll(".sale-location-input").forEach(input=>{
+      const location=item.locations[Number(input.dataset.salePendingLocation??input.dataset.location)];
+      if(location)input.value=item.allocations[location.storage]||0;
+    });
+  }
   const total=document.querySelector("#sale-total");if(total) total.textContent=`Total: ${saleMoney(saleTotal(s.items))}`;
   persistSaleDraft();
 });
@@ -212,21 +341,32 @@ document.addEventListener("submit",event=>{
   if(event.target.id!=="sales-form")return;
   event.preventDefault();
   void salesWork(async()=>{
-    if(salesState.phase==="review") {validateSaleItems(salesState.items);salesState.phase="customer";}
-    else await saveSale();
+    if(salesState.phase==="review") {validateSaleItems(salesState.items);salesState.phase="document";}
+    else if(salesState.phase==="document")continueSaleDocument();
+    else if(salesState.phase==="customer")await saveSale();
   });
 });
-document.addEventListener("click",event=>{
+document.addEventListener("click",async event=>{
   const button=event.target.closest("[data-sale-action]");if(!button||salesState.busy)return;
   const action=button.dataset.saleAction,s=salesState;
   if(s.uncertain&&!["verify","resume"].includes(action))return;
-  if(s.pending&&!["cancel-price","resume"].includes(action))return;
-  if(action==="menu"){openSalesMenu();render();}
-  if(action==="resume"){s.showMenu=false;render();}
-  if(action==="new"){state.query="";Object.assign(s,{items:[],customer:{},type:"",phase:"scan",pending:null,id:"",saved:null,error:"",owner:state.userEmail,showMenu:false});persistSaleDraft();render();}
+  if(s.pending&&!["cancel-price","resume","qty-increase","qty-decrease","location-increase","location-decrease","image","edit-price","new","continue-draft","restart-draft"].includes(action))return;
+  if(action==="cancel") {
+    if(s.items.length&&!await confirmRemoval("Cancelar esta venda e apagar o rascunho?"))return;
+    state.query="";Object.assign(s,{items:[],customer:{},type:"",phase:"scan",pending:null,id:"",saved:null,error:"",showMenu:true});persistSaleDraft();render();return;
+  }
+  if(action==="location-increase"||action==="location-decrease")adjustSaleLocation(button.dataset.index,button.dataset.location,action==="location-increase"?1:-1);
+  if(action==="qty-increase"||action==="qty-decrease")adjustSaleQuantity(button.dataset.index,action==="qty-increase"?1:-1);
+  if(action==="edit-price")openSalePriceDialog(button.dataset.index);
+  if(action==="image")openBatchImage(button.dataset.index==="pending"?s.pending?.item:s.items[Number(button.dataset.index)]);
+
+  if(action==="resume"||action==="continue-draft"){resumeSaleDraft();return;}
+  if(action==="restart-draft"){startNewSale();return;}
+  if(action==="new"){requestNewSale();return;}
   if(action==="edit" || action==="review"){s.phase="review";persistSaleDraft();render();}
+  if(action==="document-back"){s.phase="document";persistSaleDraft();render();}
   if(action==="scan"){state.query="";s.phase="scan";persistSaleDraft();render();}
-  if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.phase="customer";});
+  if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.phase="document";});
   if(action==="cancel-price"){s.pending=null;s.error="";persistSaleDraft();render();}
   if(action==="remove"){s.items.splice(Number(button.dataset.index),1);persistSaleDraft();render();}
   if(action==="print")printSale(s.saved);
@@ -237,7 +377,7 @@ document.addEventListener("click",event=>{
 });
 
 document.addEventListener("keydown",event=>{
-  if(state.mode!=="vendas" || salesState.showMenu || salesState.phase!=="scan" || salesState.pending || salesState.busy || salesState.uncertain || state.scannerOpen || !state.loggedIn || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+  if(state.mode!=="vendas" || salesState.showMenu || salesState.confirmNew || salesState.phase!=="scan" || salesState.pending || salesState.busy || salesState.uncertain || state.scannerOpen || !state.loggedIn || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
   if(event.target.closest?.("input:not(#entry-code), textarea, select, [contenteditable], .app-confirm-dialog"))return;
   if(/^\d$/.test(event.key))state.query+=event.key;
   else if(event.key==="Backspace")state.query=state.query.slice(0,-1);
