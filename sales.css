@@ -37,7 +37,7 @@
 
 .sales-page .sale-review-actions>button,.sales-page .sale-price-actions>button,.sales-page .sale-document-options>button{font-size:var(--action-button-font-size,18px);font-weight:800;letter-spacing:1px}
 
-.sales-page .sale-price-entry{position:relative;margin-bottom:12px}.sales-page .sale-price-entry input{width:100%;padding-right:78px;box-sizing:border-box}.sales-page .sale-price-entry>.sale-price-ok{position:absolute;right:6px;top:6px;bottom:6px;min-width:60px;padding:8px 12px;border:0;border-radius:5px;background:#ffd600;color:#171717;font-weight:400;font-size:var(--action-button-font-size,18px)}.sales-page .sale-price-ok[hidden]{display:none}
+.sales-page .sale-price-entry{position:relative;margin-bottom:12px}.sales-page .sale-price-entry input{width:100%;padding-right:78px;box-sizing:border-box}.sales-page .sale-price-entry>.sale-price-ok{position:absolute;right:6px;top:6px;bottom:6px;min-width:60px;padding:8px 12px;border:0;border-radius:5px;background:#ffd600;color:#171717;font-weight:600;font-size:var(--action-button-font-size,18px)}.sales-page .sale-price-ok[hidden]{display:none}
 
 .sales-scan-panel .batch-mini-list>[data-sale-action='review']{cursor:pointer}.sales-scan-panel .batch-mini-list>[data-sale-action='review']:hover{background:#f5f7f8}.sales-scan-panel .batch-mini-list>[data-sale-action='review']:focus-visible{outline:2px solid #17324d;outline-offset:-2px}
 
