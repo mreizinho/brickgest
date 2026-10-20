@@ -29,6 +29,7 @@ function resumeSaleDraft() {
   else if(s.pending)s.phase="scan";
   else if(!["scan","review","document","customer"].includes(s.phase))s.phase=["scan","review","document","customer"].includes(s.resumePhase)?s.resumePhase:"review";
   if(s.phase==="customer" && !["Factura","Recibo"].includes(s.type) && !s.uncertain)s.phase="document";
+  if(s.phase==="document" && !s.uncertain)s.type="";
   persistSaleDraft();render();
 }
 function requestNewSale() {
@@ -353,7 +354,7 @@ document.addEventListener("submit",event=>{
   if(event.target.id!=="sales-form")return;
   event.preventDefault();
   void salesWork(async()=>{
-    if(salesState.phase==="review") {validateSaleItems(salesState.items);salesState.phase="document";}
+    if(salesState.phase==="review") {validateSaleItems(salesState.items);salesState.type="";salesState.phase="document";}
     else if(salesState.phase==="document")continueSaleDocument();
     else if(salesState.phase==="customer")await saveSale();
   });
@@ -377,9 +378,9 @@ document.addEventListener("click",async event=>{
   if(action==="new"){requestNewSale();return;}
   if(action==="edit" || action==="review"){s.phase="review";persistSaleDraft();render();}
   if(action==="select-document" && s.phase==="document" && ["Factura","Recibo"].includes(button.dataset.document)){s.type=button.dataset.document;persistSaleDraft();render();document.querySelector(`[data-sale-action="select-document"][data-document="${s.type}"]`)?.focus({preventScroll:true});return;}
-  if(action==="document-back"){s.phase="document";persistSaleDraft();render();}
+  if(action==="document-back"){s.type="";s.phase="document";persistSaleDraft();render();}
   if(action==="scan"){state.query="";s.phase="scan";persistSaleDraft();render();}
-  if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.phase="document";});
+  if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.type="";s.phase="document";});
   if(action==="cancel-price"){s.pending=null;s.error="";persistSaleDraft();render();}
   if(action==="remove"){s.items.splice(Number(button.dataset.index),1);persistSaleDraft();render();}
   if(action==="print")printSale(s.saved);
