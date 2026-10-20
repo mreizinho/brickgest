@@ -569,6 +569,25 @@ function optionCard(mode, title, description, image, interactive = true) {
   return `<button type="button"${interactive ? ` data-mode="${mode}"` : ""}${disabled ? " disabled" : ""} class="option-card ${mode}"><span class="mode-option-image"><img src="public/options/${imageFile}" alt=""></span><span><strong>${title}</strong><small>${description}</small></span><b>›</b></button>`;
 }
 
+let salesModuleLoad = null;
+async function ensureSalesModule() {
+  if (typeof salesMarkup === "function" && typeof openSalesMenu === "function") return;
+  if (salesModuleLoad) return salesModuleLoad;
+  salesModuleLoad = new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    const source=document.querySelector('script[src*="sales.js"]')?.src || new URL("sales.js",document.baseURI).href;
+    const url=new URL(source,document.baseURI);url.searchParams.set("retry",String(Date.now()));
+    let timer;
+    const finish=error=>{clearTimeout(timer);script.onload=null;script.onerror=null;if(error){script.remove();reject(error);}else resolve();};
+    script.src=url.href;
+    script.onload=()=>finish(typeof salesMarkup==="function" && typeof openSalesMenu==="function"?null:new Error("Não foi possível iniciar Vendas. Atualiza a página e tenta novamente."));
+    script.onerror=()=>finish(new Error("Não foi possível carregar Vendas. Verifica a ligação e tenta novamente."));
+    timer=setTimeout(()=>finish(new Error("O carregamento de Vendas demorou demasiado. Tenta novamente.")),15000);
+    document.head.append(script);
+  });
+  try {await salesModuleLoad;} finally {salesModuleLoad=null;}
+}
+
 function homeButton(mode, label, image, interactive = true) {
   const disabled = REQUIRE_GOOGLE_LOGIN_FOR_NAVIGATION && !state.loggedIn;
   return `<button type="button" class="sheets-open-button home-action home-action-${mode}"${interactive ? ` data-mode="${mode}"` : ""}${disabled ? " disabled" : ""}>${label}<img src="public/options/${image}.svg" alt="" width="28" height="28"></button>`;
@@ -2956,6 +2975,10 @@ document.addEventListener("click", async event => {
   const modeButton = event.target.closest("[data-mode]");
   if (modeButton && !modeButton.disabled) {
     if (modeButton.dataset.mode === "transferencia") { await startTransferSelection(true); return; }
+    if(modeButton.dataset.mode==="vendas") {
+      modeButton.disabled=true;
+      try {await ensureSalesModule();} catch(error){state.movementNotice={type:"error",message:error.message};render();return;} finally {if(modeButton.isConnected)modeButton.disabled=false;}
+    }
     state.mode = modeButton.dataset.mode;
     if (state.mode === "vendas" && typeof openSalesMenu === "function") openSalesMenu();
     state.query = "";
