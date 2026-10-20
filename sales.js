@@ -191,7 +191,8 @@ function confirmSalePrice() {
   s.pending=null;s.error="";persistSaleDraft();render();
   if(resumeScanner && state.mode==="vendas")void openBarcodeScanner();
 }
-function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState.type))throw new Error("Seleciona Factura ou Recibo para continuar.");  salesState.phase="customer";persistSaleDraft();}function salesMarkup() {
+function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState.type))throw new Error("Seleciona Factura ou Recibo para continuar.");  salesState.phase="customer";persistSaleDraft();}function saleRequiredCustomerFields(type) { return type==="Factura"?["name","tax"]:["name"]; }
+function salesMarkup() {
   const s = salesState, e = escapeHtml;
   if(s.showMenu)return salesMenuMarkup();
   if (!state.loggedIn) return `<section class="sales-page"><h1>VENDAS</h1><p>Inicia sessão para gerir as vendas.</p><button data-action="login">Login Google</button><button data-action="home">Início</button></section>`;
@@ -210,7 +211,7 @@ function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState
 
   } else {
     const reviewing=s.phase==="review",customer=s.phase==="customer";
-    const customerFields=`<div class="sales-customer-grid">${[["name","Nome","text"],["address","Morada 1","text"],["address2","Morada 2","text"],["phone","Contacto (tel)","tel"],["email","Email","email"],["tax","NIF","text"]].map(([key,label,type])=>`<label class="sale-customer-${key}">${label}<input type="${type}" ${key==="address2"?"":"required"} maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
+    const customerFields=`<div class="sales-customer-grid">${[["name","Nome","text"],["address","Morada 1","text"],["address2","Morada 2","text"],["phone","Contacto (tel)","tel"],["email","Email","email"],["tax","NIF","text"]].map(([key,label,type])=>`<label class="sale-customer-${key}">${label}<input type="${type}" ${saleRequiredCustomerFields(s.type).includes(key)?"required":""} maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
     const summary=customer?`<p>Documento: <strong>${e(s.type)}</strong></p>`:s.items.map((item,i)=>reviewing?saleItemMarkup(item,i):`<article class="batch-item sale-item">${saleSetCardMarkup(item,i,true)}</article>`).join("");
     const actions=reviewing?`<button type="button" class="secondary" data-sale-action="scan">CONTINUAR LEITURA</button><button type="submit" class="primary" name="checkout">CONCLUIR</button>`:customer?`<button type="button" class="secondary" data-sale-action="document-back">VOLTAR AO DOCUMENTO</button><button type="submit" class="primary" name="save">CONFIRMAR VENDA</button>`:`<button type="button" class="secondary" data-sale-action="edit">REVER VENDA</button><button type="submit" class="primary" name="customer" ${["Factura","Recibo"].includes(s.type)?"":"disabled"}>CONTINUAR</button>`;
     const documentField=`<p id="sale-document-label">Documento</p><div class="batch-actions sale-document-options" role="group" aria-labelledby="sale-document-label">${["Factura","Recibo"].map(type=>`<button type="button" class="${s.type===type?"primary":"secondary"}" data-sale-action="select-document" data-document="${type}" aria-pressed="${s.type===type}">${type.toUpperCase()}</button>`).join("")}</div>`;
@@ -288,7 +289,7 @@ function buildSaleRows(stockRows,id,timestamp) {
 async function saveSale() {
   const s=salesState;
   validateSaleItems(s.items);
-  if (!["Factura","Recibo"].includes(s.type) || ["name","address","email","phone","tax"].some(k=>!String(s.customer[k]||"").trim())) throw new Error("Preenche o documento e os dados do cliente.");
+  if (!["Factura","Recibo"].includes(s.type) || saleRequiredCustomerFields(s.type).some(k=>!String(s.customer[k]||"").trim())) throw new Error(s.type==="Factura"?"Preenche o nome e o NIF do cliente.":s.type==="Recibo"?"Preenche o nome do cliente.":"Seleciona o documento.");
   if (!s.id) s.id=createMovementId();
   const sheets=await prepareSalesSheets();
   const existing=await saleValues("Vendas!A2:M");
