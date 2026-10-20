@@ -44,3 +44,5 @@
 .sales-page .sale-document-options>.secondary{background:#555657;color:#fff}
 
 .sales-page .sales-search-actions{grid-template-columns:minmax(0,1fr);margin-bottom:24px}.sales-page .sales-search-actions>button{grid-column:auto}.sales-page [data-sale-action='csv']{display:block;margin:0 0 18px}
+
+.sales-page .sale-price-entry>.sale-price-ok:disabled{background:var(--control-button-bg);color:#62686c;opacity:1;cursor:default}
