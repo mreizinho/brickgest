@@ -48,3 +48,5 @@
 .sales-page .sale-price-entry>.sale-price-ok:disabled{background:var(--control-button-bg);color:#62686c;opacity:1;cursor:default}
 
 .sale-customer-extra{margin:20px 0;border:1px solid #d5dfe7;border-radius:8px}.sale-customer-extra>summary{padding:16px;cursor:pointer;font-weight:600}.sales-page .sale-customer-extra>.sales-customer-grid{padding:0 16px 16px;margin:0}
+
+.sale-customer-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 24px}.sale-customer-heading>p{margin:0}.sale-customer-heading>.sales-total{margin-left:auto;text-align:right}
