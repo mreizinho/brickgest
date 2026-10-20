@@ -49,6 +49,6 @@
 
 .sale-customer-extra{margin:20px 0;border:1px solid #d5dfe7;border-radius:8px}.sale-customer-extra>summary{padding:16px;cursor:pointer;font-weight:600}.sales-page .sale-customer-extra>.sales-customer-grid{padding:0 16px 16px;margin:0}
 
-.sale-customer-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 24px}.sale-customer-heading>p{margin:0}.sale-customer-heading>.sales-total{margin-left:auto;text-align:right}
+.sale-customer-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 24px}.sale-customer-heading>p{margin:0}.sale-customer-heading>.sales-total{margin-left:auto;text-align:right;font-size:1em}
 
 .sales-page .sale-price-entry:has(>input:focus)::after{content:'';position:absolute;inset:0;z-index:2;border:2px solid #17324d;border-radius:6px;pointer-events:none}.sales-page .sale-price-entry>input:focus{outline:none;box-shadow:none}
