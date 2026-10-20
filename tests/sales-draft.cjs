@@ -61,7 +61,9 @@ assert.ok(!run('salesMarkup().includes(' + JSON.stringify('name="customer" disab
 assert.ok(!run('salesMarkup().includes("data-sale-customer")'),'Selecting a document must still wait for Continue');
 run('openSalesMenu();requestNewSale();resumeSaleDraft();');
 assert.equal(run('salesState.phase'),'document','Restore the document selection stage');
-run('continueSaleDocument()');
+assert.equal(run('salesState.type'),'','Re-entering Document must clear the previous choice');
+assert.throws(()=>run('continueSaleDocument()'),/Seleciona/);
+run(`salesState.type='Recibo';continueSaleDocument();`);
 assert.equal(run('salesState.phase'),'customer');
 assert.equal(run('salesTitle()'),'DADOS DO CLIENTE');
 assert.ok(run('salesMarkup().includes("data-sale-customer")'));
