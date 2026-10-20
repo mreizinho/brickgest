@@ -143,7 +143,7 @@ function saleItemMarkup(item,index,readonly=false) {
 }
 function salePriceMarkup() {
   const item=salesState.pending.item,e=escapeHtml;
-  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><article class="batch-item sale-item">${saleSetCardMarkup(item,"pending")}<div class="sale-item-fields"><label>Preço unitário de venda (€)<input class="sale-price-input" id="sale-pending-price" type="number" inputmode="decimal" enterkeyhint="done" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"></label><div class="sales-grid">${saleLocationMarkup(item,"pending")}</div></div></article><div class="batch-actions sale-price-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit" class="primary">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
+  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><article class="batch-item sale-item">${saleSetCardMarkup(item,"pending")}<div class="sale-item-fields"><label for="sale-pending-price">Preço unitário de venda (€)</label><div class="sale-price-entry"><input class="sale-price-input" id="sale-pending-price" type="number" inputmode="decimal" enterkeyhint="done" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"><button type="button" class="sale-price-ok" data-sale-action="accept-price" ${String(item.price||"").trim()?"":"hidden"}>OK</button></div><div class="sales-grid">${saleLocationMarkup(item,"pending")}</div></div></article><div class="batch-actions sale-price-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit" class="primary">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
 }
 function adjustSaleQuantity(index,delta) {
   const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)];
@@ -327,7 +327,7 @@ async function salesWork(work) {
 document.addEventListener("input",event=>{
   const el=event.target,s=salesState;
   if (state.mode!=="vendas" || s.busy || s.uncertain) return;
-  if (el.dataset.salePendingPrice !== undefined && s.pending) s.pending.item.price=el.value;
+  if (el.dataset.salePendingPrice !== undefined && s.pending) {s.pending.item.price=el.value;const ok=el.parentElement?.querySelector(".sale-price-ok");if(ok)ok.hidden=!el.value.trim();}
   if (el.dataset.salePendingLocation !== undefined && s.pending) setSaleLocation("pending",Number(el.dataset.salePendingLocation),el.value);
   if (el.dataset.saleCustomer) s.customer[el.dataset.saleCustomer]=el.value;
   if (el.dataset.saleField) {s[el.dataset.saleField]=el.value;if(s.phase==="list")s.searched=false;if (["type","from","to","filter","integration"].includes(el.dataset.saleField)) render();}
@@ -363,7 +363,8 @@ document.addEventListener("click",async event=>{
   const button=event.target.closest("[data-sale-action]");if(!button||salesState.busy)return;
   const action=button.dataset.saleAction,s=salesState;
   if(s.uncertain&&!["verify","resume"].includes(action))return;
-  if(s.pending&&!["cancel-price","resume","qty-increase","qty-decrease","location-increase","location-decrease","image","edit-price","new","continue-draft","restart-draft"].includes(action))return;
+  if(s.pending&&!["cancel-price","accept-price","resume","qty-increase","qty-decrease","location-increase","location-decrease","image","edit-price","new","continue-draft","restart-draft"].includes(action))return;
+  if(action==="accept-price"){const input=document.querySelector("#sale-pending-price");if(!input||!input.reportValidity())return;try{validateSaleItems([s.pending.item]);persistSaleDraft();input.blur();button.blur();}catch(error){s.error=error.message;render();}return;}
   if(action==="cancel") {
     if(s.items.length&&!await confirmRemoval("Cancelar esta venda e apagar o rascunho?"))return;
     state.query="";Object.assign(s,{items:[],customer:{},type:"",phase:"scan",pending:null,id:"",saved:null,error:"",showMenu:true});persistSaleDraft();render();return;

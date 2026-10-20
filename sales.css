@@ -36,3 +36,5 @@
 .sales-page .batch-actions>button,.sales-scan-panel .batch-actions>button,.sale-price-dialog .batch-actions>button,.sale-resume-actions>button{font-family:inherit;font-size:var(--action-button-font-size,18px);font-weight:800;letter-spacing:1px;line-height:1.25;text-transform:uppercase}
 
 .sales-page .sale-review-actions>button,.sales-page .sale-price-actions>button,.sales-page .sale-document-options>button{font-size:var(--action-button-font-size,18px);font-weight:800;letter-spacing:1px}
+
+.sales-page .sale-price-entry{position:relative;margin-bottom:12px}.sales-page .sale-price-entry input{width:100%;padding-right:78px;box-sizing:border-box}.sales-page .sale-price-entry>.sale-price-ok{position:absolute;right:6px;top:6px;bottom:6px;min-width:60px;padding:8px 12px;border:0;border-radius:5px;background:#ffd600;color:#171717;font-weight:800;font-size:var(--action-button-font-size,18px)}.sales-page .sale-price-ok[hidden]{display:none}
