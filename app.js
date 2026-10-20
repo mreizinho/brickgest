@@ -199,7 +199,7 @@ function parseMoneyValue(value) {
 
 function formatMoneyValue(value) {
   if (!Number.isFinite(value)) return "Valor não disponível";
-  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", useGrouping: true }).format(value);
 }
 
 function consultationFilterCount(filters = activeFilterState().appliedFilters) {

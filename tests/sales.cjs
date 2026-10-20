@@ -55,3 +55,5 @@ assert.equal(run('saleMovementCells(["id","date","001234567","10255"]).values[2]
 for(const reference of ['CUSTOM-001234567','10255-1','00123','=1+1','9007199254740992']) {
   assert.equal(run(`saleMovementCells(['id','date','ean',${JSON.stringify(reference)}]).values[3].userEnteredValue.stringValue`),reference);
 }
+assert.equal(run('formatMoneyValue(1800)').replace(/\s/g,' '),'1.800,00 €');
+assert.equal(run('formatMoneyValue(1234567.89)').replace(/\s/g,' '),'1.234.567,89 €');
