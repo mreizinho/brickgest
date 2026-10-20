@@ -205,7 +205,7 @@ function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState
 
   } else {
     const reviewing=s.phase==="review",customer=s.phase==="customer";
-    const customerFields=`<div class="sales-grid">${[["name","Nome","text"],["address","Morada","text"],["email","Email","email"],["phone","Contacto","tel"],["tax","NIF","text"]].map(([key,label,type])=>`<label>${label}<input type="${type}" required maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
+    const customerFields=`<div class="sales-customer-grid">${[["name","Nome","text"],["address","Morada 1","text"],["address2","Morada 2","text"],["phone","Contacto (tel)","tel"],["email","Email","email"],["tax","NIF","text"]].map(([key,label,type])=>`<label class="sale-customer-${key}">${label}<input type="${type}" ${key==="address2"?"":"required"} maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
     const summary=customer?`<p>Documento: <strong>${e(s.type)}</strong></p>`:s.items.map((item,i)=>saleItemMarkup(item,i,!reviewing)).join("");
     const actions=reviewing?`<button type="button" class="secondary" data-sale-action="scan">CONTINUAR LEITURA</button><button type="submit" class="primary" name="checkout">CONCLUIR</button>`:customer?`<button type="button" class="secondary" data-sale-action="document-back">VOLTAR AO DOCUMENTO</button><button type="submit" class="primary" name="save">CONFIRMAR VENDA</button>`:`<button type="button" class="secondary" data-sale-action="edit">REVER VENDA</button><button type="submit" class="primary" name="customer" ${["Factura","Recibo"].includes(s.type)?"":"disabled"}>CONTINUAR</button>`;
     const documentField=`<div class="sales-grid"><label>Documento<select required data-sale-field="type"><option value="">Selecionar…</option>${["Factura","Recibo"].map(v=>`<option ${s.type===v?"selected":""}>${v}</option>`).join("")}</select></label></div>`;
@@ -227,6 +227,12 @@ async function salesRequest(path, body) {
 }
 async function saleValues(range) { return (await salesRequest(`/values/${encodeURIComponent(range)}?valueRenderOption=UNFORMATTED_VALUE`)).values || []; }
 function saleCells(values) { return {values:values.map(v=>({userEnteredValue:typeof v === "number"?{numberValue:v}:{stringValue:String(v??"")}}))}; }
+function saleMovementCells(values) {
+  const row=[...values],reference=String(row[3]??"").trim(),number=Number(reference);
+  // Match USER_ENTERED movements without changing literal IDs, EANs or custom article codes.
+  if (/^(0|[1-9][0-9]*)$/.test(reference) && Number.isSafeInteger(number) && String(number)===reference) row[3]=number;
+  return saleCells(row);
+}
 async function prepareSalesSheets() {
   await ensureCostColumn();
   let sheets = await loadSpreadsheetSheetMetadata();
@@ -272,7 +278,7 @@ function buildSaleRows(stockRows,id,timestamp) {
     }
   }
   const c=s.customer;
-  return {sale:[id,timestamp,s.type,c.name,c.address,c.email,c.phone,c.tax,saleTotal(s.items)/100,s.type==="Factura"?"Pendente":"Não aplicável","",state.userEmail,saleSellerText()],lines,movements};
+  return {sale:[id,timestamp,s.type,c.name,[c.address,c.address2].filter(value=>String(value||"").trim()).join("\n"),c.email,c.phone,c.tax,saleTotal(s.items)/100,s.type==="Factura"?"Pendente":"Não aplicável","",state.userEmail,saleSellerText()],lines,movements};
 }
 async function saveSale() {
   const s=salesState;
@@ -285,7 +291,7 @@ async function saveSale() {
   if (duplicate) { s.saved=duplicate;s.lines=await saleValues("VendasLinhas!A2:H");s.phase="saved";s.uncertain=false;return; }
   const rows=buildSaleRows(await loadMovementStockRows(),s.id,createMovementTimestamp());
   s.uncertain=true;s.submittedAt=Date.now();persistSaleDraft();
-  await salesRequest(":batchUpdate",{requests:[["Movimentos",rows.movements],["Vendas",[rows.sale]],["VendasLinhas",rows.lines]].map(([name,values])=>({appendCells:{sheetId:findSheetByName(sheets,name).properties.sheetId,rows:values.map(saleCells),fields:"userEnteredValue"}}))});
+  await salesRequest(":batchUpdate",{requests:[["Movimentos",rows.movements],["Vendas",[rows.sale]],["VendasLinhas",rows.lines]].map(([name,values])=>({appendCells:{sheetId:findSheetByName(sheets,name).properties.sheetId,rows:values.map(name==="Movimentos"?saleMovementCells:saleCells),fields:"userEnteredValue"}}))});
   s.uncertain=false;s.saved=rows.sale;s.lines=rows.lines;s.phase="saved";
 }
 function filteredSales() {

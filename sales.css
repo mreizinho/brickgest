@@ -23,3 +23,5 @@
 .sale-resume-actions{grid-template-columns:minmax(0,1fr)}.sale-resume-actions .primary:last-child{grid-column:auto}
 
 @media(min-width:851px){.batch-movement-actions:has(>[data-sale-action='new']){grid-template-columns:repeat(2,minmax(0,1fr))}.batch-movement-actions:has(>[data-sale-action='new'])>[data-sale-action]{grid-column:auto;width:100%;margin-top:0}}
+
+.sales-page .sales-customer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px;margin:16px 0}.sales-page .sales-customer-grid>label{min-width:0;grid-column:1/-1}.sales-page .sales-customer-grid input{box-sizing:border-box;width:100%;min-width:0}.sales-page .sales-customer-grid>.sale-customer-phone{grid-column:1}.sales-page .sales-customer-grid>.sale-customer-email{grid-column:2}

@@ -38,6 +38,7 @@ assert.equal(run('salesTitle()'),'VENDAS');
   assert.equal(run('batches.length'),1);
   assert.equal(run('batches[0].requests.length'),3);
   assert.equal(run('batches[0].requests[0].appendCells.rows.length'),3);
+  assert.equal(run('batches[0].requests[0].appendCells.rows[0].values[3].userEnteredValue.numberValue'),100);
   assert.equal(run('salesState.phase'),'saved');
   assert.equal(run('salesState.uncertain'),false);
   run(`saleValues=async range=>range.startsWith('Vendas!')?[salesState.saved]:salesState.lines;`);
@@ -48,3 +49,9 @@ assert.equal(run('salesTitle()'),'VENDAS');
   assert.equal(run('salesState.uncertain'),true,'Ambiguous response must keep submission locked');
   console.log('Sales tests passed');
 })().catch(e=>{console.error(e);process.exitCode=1});
+// Movement references must match the numeric type used by the existing inventory QUERY.
+assert.equal(run('saleMovementCells(["id","date","001234567","10255"]).values[3].userEnteredValue.numberValue'),10255);
+assert.equal(run('saleMovementCells(["id","date","001234567","10255"]).values[2].userEnteredValue.stringValue'),'001234567');
+for(const reference of ['CUSTOM-001234567','10255-1','00123','=1+1','9007199254740992']) {
+  assert.equal(run(`saleMovementCells(['id','date','ean',${JSON.stringify(reference)}]).values[3].userEnteredValue.stringValue`),reference);
+}
