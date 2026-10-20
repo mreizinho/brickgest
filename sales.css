@@ -34,3 +34,5 @@
 
 /* Keep every sale action identical to the home action typography. */
 .sales-page .batch-actions>button,.sales-scan-panel .batch-actions>button,.sale-price-dialog .batch-actions>button,.sale-resume-actions>button{font-family:inherit;font-size:var(--action-button-font-size,18px);font-weight:800;letter-spacing:1px;line-height:1.25;text-transform:uppercase}
+
+.sales-page .sale-review-actions>button,.sales-page .sale-price-actions>button,.sales-page .sale-document-options>button{font-size:var(--action-button-font-size,18px);font-weight:800;letter-spacing:1px}
