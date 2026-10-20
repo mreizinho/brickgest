@@ -515,3 +515,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 /* Shared action typography across home and subsequent screens. */
 :root{--action-button-font-size:18px}.sheets-open-button,.batch-actions button,.entry-keypad .keypad-actions button,.transfer-stock-list>button,.transfer-selection-footer .primary,.mobile-conclude-button{font-size:var(--action-button-font-size)}.batch-actions button,.entry-keypad .keypad-actions button{height:auto;min-height:58px;padding:14px 12px;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
+
+.movement-form-actions button,.consultation-actions button,.inventory-name-copy .batch-actions button{font-size:var(--action-button-font-size);font-weight:800;letter-spacing:1px;line-height:1.25;height:auto;min-height:58px;padding:14px 12px;white-space:normal}
