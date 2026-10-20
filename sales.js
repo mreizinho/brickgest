@@ -92,6 +92,11 @@ function openSalePriceDialog(index) {
   });
   dialog.addEventListener("close",()=>{
     dialog.remove();
+    if(window.matchMedia?.("(pointer: coarse)").matches){
+      const focused=document.activeElement;
+      if(focused?.matches?.("[data-sale-action=edit-price]"))focused.blur();
+      return;
+    }
     if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
     else document.querySelector(`[data-sale-action="edit-price"][data-index="${index}"]`)?.focus({preventScroll:true});
   },{once:true});
