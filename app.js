@@ -1195,7 +1195,7 @@ function updateMobileConcludeButton() {
   if (!floating) return;
   const content = document.querySelector(".app-content");
   const original = content?.querySelector('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"], .batch-actions [data-sale-action="checkout"], #sales-form .batch-actions button[name="checkout"]');
-  const header = document.querySelector(".lot-mobile-header");
+  const header = document.querySelector(state.mode==="vendas"?".movement-header":".lot-mobile-header");
   const mobile = window.matchMedia("(max-width:850px)").matches;
   if (!original || !header || !mobile || state.scannerOpen || state.customArticle) {
     floating.hidden = true;

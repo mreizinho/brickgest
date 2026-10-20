@@ -12,7 +12,7 @@ run(`
  const header={getBoundingClientRect:()=>({bottom:64})};
  let floating, observer, disconnected=0;
  document.createElement=()=>({style:{},addEventListener(type,fn){this.click=fn},remove(){floating=null}});
- document.querySelector=selector=>selector==='.app-content'?content:selector==='.lot-mobile-header'?header:selector==='.mobile-conclude-button'?floating:selector==='#app'?{append(button){floating=button}}:null;
+ document.querySelector=selector=>selector==='.app-content'?content:selector==='.lot-mobile-header'||selector==='.movement-header'?header:selector==='.mobile-conclude-button'?floating:selector==='#app'?{append(button){floating=button}}:null;
  window.matchMedia=()=>({matches:mobile});
  window.IntersectionObserver=class {constructor(callback){observer=callback}observe(){}disconnect(){disconnected++}};
  state.mode='lote';setupMobileConcludeButton();
@@ -58,3 +58,6 @@ run('window.visualViewport.height=640;updateMobileConcludeButton()');
 assert.equal(run('floating.hidden'),true,'Sales float hides as soon as the real action is visible');
 run(`state.mode='lote';window.visualViewport.height=500;updateMobileConcludeButton()`);
 assert.equal(run('floating.hidden'),true,'Movement visibility rule remains unchanged');
+run(`state.mode='vendas';original.disabled=false;bounds={top:700,bottom:750};const queryWithHeaders=document.querySelector;document.querySelector=selector=>selector==='.lot-mobile-header'?null:queryWithHeaders(selector);setupMobileConcludeButton()`);
+assert.equal(run('floating.hidden'),false,'Sales must work with movement-header and no lot-mobile-header');
+assert.equal(run('floating.style.top'),'96px');
