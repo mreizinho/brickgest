@@ -46,3 +46,5 @@
 .sales-page .sales-search-actions{grid-template-columns:minmax(0,1fr);margin-bottom:24px}.sales-page .sales-search-actions>button{grid-column:auto}.sales-page [data-sale-action='csv']{display:block;margin:0 0 18px}
 
 .sales-page .sale-price-entry>.sale-price-ok:disabled{background:var(--control-button-bg);color:#62686c;opacity:1;cursor:default}
+
+.sale-customer-extra{margin:20px 0;border:1px solid #d5dfe7;border-radius:8px}.sale-customer-extra>summary{padding:16px;cursor:pointer;font-weight:600}.sales-page .sale-customer-extra>.sales-customer-grid{padding:0 16px 16px;margin:0}
