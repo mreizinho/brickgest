@@ -1153,8 +1153,8 @@ function setupMobileConcludeButton() {
   mobileConcludeObserver?.disconnect();
   document.querySelector(".mobile-conclude-button")?.remove();
   const content = document.querySelector(".app-content");
-  const original = content?.querySelector?.('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"]');
-  if (!isBatchMode() || !original || !window.IntersectionObserver) return;
+  const original = content?.querySelector?.('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"], .batch-actions [data-sale-action="checkout"], #sales-form .batch-actions button[name="checkout"]');
+  if ((!isBatchMode() && state.mode!=="vendas") || !original || !window.IntersectionObserver) return;
   const floating = document.createElement("button");
   floating.type = "button";
   floating.className = "mobile-conclude-button";
@@ -1174,7 +1174,7 @@ function updateMobileConcludeButton() {
   const floating = document.querySelector(".mobile-conclude-button");
   if (!floating) return;
   const content = document.querySelector(".app-content");
-  const original = content?.querySelector('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"]');
+  const original = content?.querySelector('.batch-actions [data-action="batch-conditions"], .batch-actions [data-action="batch-submit"], .batch-actions [data-sale-action="checkout"], #sales-form .batch-actions button[name="checkout"]');
   const header = document.querySelector(".lot-mobile-header");
   const mobile = window.matchMedia("(max-width:850px)").matches;
   if (!original || !header || !mobile || state.scannerOpen || state.customArticle) {
