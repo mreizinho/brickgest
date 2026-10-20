@@ -512,3 +512,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-exit-locations{display:grid;gap:16px;margin-top:20px}
 .batch-exit-locations>section>strong{display:block;margin-bottom:8px;font-size:14px}
 .batch-exit-locations .batch-allocations{padding:12px;border:1px solid #dfe2e4;border-radius:7px}
+
+/* Shared action typography across home and subsequent screens. */
+:root{--action-button-font-size:18px}.sheets-open-button,.batch-actions button,.entry-keypad .keypad-actions button,.transfer-stock-list>button,.transfer-selection-footer .primary,.mobile-conclude-button{font-size:var(--action-button-font-size)}.batch-actions button,.entry-keypad .keypad-actions button{height:auto;min-height:58px;padding:14px 12px;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
