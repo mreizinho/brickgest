@@ -1186,6 +1186,7 @@ function setupMobileConcludeButton() {
     updateMobileConcludeButton();
   }, { root: content, threshold: [0, 1] });
   mobileConcludeObserver.observe(original);
+  content.addEventListener?.("scroll",updateMobileConcludeButton,{passive:true});
   updateMobileConcludeButton();
 }
 
@@ -1202,13 +1203,18 @@ function updateMobileConcludeButton() {
   }
   const bounds = original.getBoundingClientRect();
   const viewport = content.getBoundingClientRect();
-  const visible = bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
+  const salesViewport=state.mode==="vendas"?window.visualViewport:null;
+  const visibleTop=state.mode==="vendas"?Math.max(viewport.top,header.getBoundingClientRect().bottom,salesViewport?.offsetTop||0):viewport.top;
+  const visibleBottom=state.mode==="vendas"?Math.min(viewport.bottom,salesViewport?(salesViewport.offsetTop||0)+salesViewport.height:window.innerHeight||viewport.bottom):viewport.bottom;
+  const visible = bounds.top >= visibleTop && bounds.bottom <= visibleBottom;
   floating.hidden = visible || original.disabled;
   // Keep the same clearance for the toast, even while no notice is visible.
   floating.style.top = `${header.getBoundingClientRect().bottom + 32}px`;
 }
 
 window.addEventListener("resize", updateMobileConcludeButton);
+window.visualViewport?.addEventListener("resize",updateMobileConcludeButton);
+window.visualViewport?.addEventListener("scroll",updateMobileConcludeButton);
 
 function updateLotMobileHeaderSummary() {
   const title = document.querySelector("[data-lot-mobile-title]");
