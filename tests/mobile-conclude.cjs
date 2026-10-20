@@ -43,3 +43,12 @@ assert.equal(run('clicks'),2);
 run('state.mode=null;setupMobileConcludeButton()');
 assert.equal(run('floating'), null);
 console.log('Mobile conclude tests passed: visibility, clipping, disabled state, desktop, camera, click forwarding and cleanup.');
+
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../sales.js'),'utf8'),context);
+run(`state.mode='vendas';state.scannerOpen=false;headerMarkup=()=>'';salesMarkup=()=>'';bounds={top:700,bottom:750};`);
+run('renderSalesPage()');
+assert.equal(run('floating.hidden'),false,'Rendering sales must initialize the floating button');
+run('bounds={top:550,bottom:600};observer()');
+assert.equal(run('floating.hidden'),true,'Sales float hides when original is visible');
+run('original.disabled=true;renderSalesPage()');
+assert.equal(run('floating.hidden'),true,'Disabled sale conclude must not float');
