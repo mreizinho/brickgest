@@ -67,7 +67,7 @@ function salesScanMarkup() {
 function saleSetCardMarkup(item,index,readonly=false) {
   const e=escapeHtml,quantity=Object.values(item.allocations).reduce((sum,q)=>sum+Number(q||0),0);
   const remove=index==="pending"?"cancel-price":"remove";
-  const details=`<b>${e(item.code)} · ${e(item.name)}</b><small>${e(item.theme||"")}${item.year?` · ${e(item.year)}`:""}${Number.isFinite(parseMoneyValue(item.rrp))?` · PVR ${e(formatMoneyValue(parseMoneyValue(item.rrp)))}`:""}</small><strong class="sale-item-price">${item.price===""?"Definir preço unitário":`${saleMoney(Math.round(Number(item.price)*100))} / un.`}</strong>`;
+  const details=`<b>${e(item.code)} · ${e(item.name)}</b><small>${e(item.theme||"")}${item.year?` · ${e(item.year)}`:""}${Number.isFinite(parseMoneyValue(item.rrp))?` · PVR ${e(formatMoneyValue(parseMoneyValue(item.rrp)))}`:""}</small>${item.price===""?"":`<strong class="sale-item-price">${saleMoney(Math.round(Number(item.price)*100))} / un.</strong>`}`;
   const detailBlock=readonly?`<span class="sale-item-details">${details}</span>`:`<button type="button" class="sale-item-details" data-sale-action="edit-price" data-index="${index}" aria-label="Alterar preço de ${e(item.code)}">${details}</button>`;
   return `<div class="batch-item-main">${readonly?'<span aria-hidden="true"></span>':`<button type="button" class="batch-remove-item" data-sale-action="${remove}" data-index="${index}" aria-label="Remover ${e(item.code)}">×</button>`}${item.imageUrl?`<button type="button" class="batch-item-image batch-image-button" data-sale-action="image" data-index="${index}" aria-label="Ver imagem de ${e(item.code)}"><img src="${e(item.imageUrl)}" alt=""></button>`:'<span class="batch-item-image">#</span>'}${detailBlock}<div class="batch-inline-qty${readonly?" sale-qty-readonly":""}"><strong>${quantity}</strong>${readonly?"":`<div><button type="button" data-sale-action="qty-increase" data-index="${index}" aria-label="Aumentar quantidade de ${e(item.code)}">▴</button><button type="button" data-sale-action="qty-decrease" data-index="${index}" aria-label="Diminuir quantidade de ${e(item.code)}">▾</button></div>`}</div></div>`;
 }
@@ -83,7 +83,7 @@ function openSalePriceDialog(index) {
   const dialog=document.createElement("dialog"),previousFocus=document.activeElement,e=escapeHtml;
   dialog.className="sale-price-dialog app-confirm-dialog";
   dialog.setAttribute("aria-labelledby","sale-price-dialog-title");
-  dialog.innerHTML=`<h2 id="sale-price-dialog-title">Alterar preço unitário</h2><p>${e(item.code)} · ${e(item.name)}</p><form><label for="sale-dialog-price">Preço unitário de venda (€)<input id="sale-dialog-price" type="number" min="0" step="0.01" inputmode="decimal" required value="${e(item.price)}"></label><p class="sales-error" role="alert" hidden></p><div class="batch-actions"><button type="button" class="secondary">CANCELAR</button><button type="submit" class="primary">GUARDAR PREÇO</button></div></form>`;
+  dialog.innerHTML=`<h2 id="sale-price-dialog-title">Alterar preço unitário</h2><p>${e(item.code)} · ${e(item.name)}</p><form><label for="sale-dialog-price">Preço unitário de venda (€)<input id="sale-dialog-price" type="number" min="0" step="0.01" inputmode="decimal" enterkeyhint="done" required value="${e(item.price)}"></label><p class="sales-error" role="alert" hidden></p><div class="batch-actions"><button type="button" class="secondary">CANCELAR</button><button type="submit" class="primary">GUARDAR PREÇO</button></div></form>`;
   dialog.querySelector(".secondary").addEventListener("click",()=>dialog.close());
   dialog.querySelector("form").addEventListener("submit",event=>{
     event.preventDefault();
@@ -137,7 +137,7 @@ function saleItemMarkup(item,index,readonly=false) {
 }
 function salePriceMarkup() {
   const item=salesState.pending.item,e=escapeHtml;
-  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><h2>Preço de venda</h2><article class="batch-item sale-item">${saleSetCardMarkup(item,"pending")}<div class="sale-item-fields"><label>Preço unitário de venda (€)<input class="sale-price-input" id="sale-pending-price" type="number" inputmode="decimal" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"></label><div class="sales-grid">${saleLocationMarkup(item,"pending")}</div></div></article><div class="batch-actions sale-price-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit" class="primary">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
+  return `<form id="sale-price-form"><fieldset ${salesState.busy?"disabled":""}><article class="batch-item sale-item">${saleSetCardMarkup(item,"pending")}<div class="sale-item-fields"><label>Preço unitário de venda (€)<input class="sale-price-input" id="sale-pending-price" type="number" inputmode="decimal" enterkeyhint="done" min="0" step="0.01" required autofocus data-sale-pending-price value="${e(item.price)}"></label><div class="sales-grid">${saleLocationMarkup(item,"pending")}</div></div></article><div class="batch-actions sale-price-actions"><button type="button" class="secondary batch-delete-action" data-sale-action="cancel-price">CANCELAR LEITURA</button><button type="submit" class="primary">CONFIRMAR PREÇO / CONTINUAR</button></div></fieldset></form>`;
 }
 function adjustSaleQuantity(index,delta) {
   const item=index==="pending"?salesState.pending?.item:salesState.items[Number(index)];
@@ -206,9 +206,9 @@ function continueSaleDocument() {  if(!["Factura","Recibo"].includes(salesState
   } else {
     const reviewing=s.phase==="review",customer=s.phase==="customer";
     const customerFields=`<div class="sales-customer-grid">${[["name","Nome","text"],["address","Morada 1","text"],["address2","Morada 2","text"],["phone","Contacto (tel)","tel"],["email","Email","email"],["tax","NIF","text"]].map(([key,label,type])=>`<label class="sale-customer-${key}">${label}<input type="${type}" ${key==="address2"?"":"required"} maxlength="${key==="tax"?20:300}" data-sale-customer="${key}" value="${e(s.customer[key]||"")}"></label>`).join("")}</div>`;
-    const summary=customer?`<p>Documento: <strong>${e(s.type)}</strong></p>`:s.items.map((item,i)=>saleItemMarkup(item,i,!reviewing)).join("");
+    const summary=customer?`<p>Documento: <strong>${e(s.type)}</strong></p>`:s.items.map((item,i)=>reviewing?saleItemMarkup(item,i):`<article class="batch-item sale-item">${saleSetCardMarkup(item,i,true)}</article>`).join("");
     const actions=reviewing?`<button type="button" class="secondary" data-sale-action="scan">CONTINUAR LEITURA</button><button type="submit" class="primary" name="checkout">CONCLUIR</button>`:customer?`<button type="button" class="secondary" data-sale-action="document-back">VOLTAR AO DOCUMENTO</button><button type="submit" class="primary" name="save">CONFIRMAR VENDA</button>`:`<button type="button" class="secondary" data-sale-action="edit">REVER VENDA</button><button type="submit" class="primary" name="customer" ${["Factura","Recibo"].includes(s.type)?"":"disabled"}>CONTINUAR</button>`;
-    const documentField=`<div class="sales-grid"><label>Documento<select required data-sale-field="type"><option value="">Selecionar…</option>${["Factura","Recibo"].map(v=>`<option ${s.type===v?"selected":""}>${v}</option>`).join("")}</select></label></div>`;
+    const documentField=`<p id="sale-document-label">Documento</p><div class="batch-actions sale-document-options" role="group" aria-labelledby="sale-document-label">${["Factura","Recibo"].map(type=>`<button type="button" class="${s.type===type?"primary":"secondary"}" data-sale-action="select-document" data-document="${type}" aria-pressed="${s.type===type}">${type.toUpperCase()}</button>`).join("")}</div>`;
     body=`<form id="sales-form"><fieldset ${s.busy||s.uncertain?"disabled":""}>${summary}<p class="sales-total" id="sale-total">Total: ${saleMoney(saleTotal(s.items))}</p>${reviewing?"":customer?customerFields:documentField}${customer?'<p>Confirma os dados do cliente antes de guardar a venda.</p><small>Comprovativo interno — não serve de factura. A opção Factura fica pendente de emissão no TOConline.</small>':""}<div class="batch-actions sale-review-actions">${actions}</div></fieldset></form>`;
   }
   if (s.uncertain) body += `<p>O resultado do envio não foi confirmado. Verifica o registo antes de tentar novamente.</p><button data-sale-action="verify">Verificar gravação</button>`;
@@ -370,6 +370,7 @@ document.addEventListener("click",async event=>{
   if(action==="restart-draft"){startNewSale();return;}
   if(action==="new"){requestNewSale();return;}
   if(action==="edit" || action==="review"){s.phase="review";persistSaleDraft();render();}
+  if(action==="select-document" && s.phase==="document" && ["Factura","Recibo"].includes(button.dataset.document)){s.type=button.dataset.document;persistSaleDraft();render();document.querySelector(`[data-sale-action="select-document"][data-document="${s.type}"]`)?.focus({preventScroll:true});return;}
   if(action==="document-back"){s.phase="document";persistSaleDraft();render();}
   if(action==="scan"){state.query="";s.phase="scan";persistSaleDraft();render();}
   if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.phase="document";});
