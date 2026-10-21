@@ -66,3 +66,5 @@
 .sales-page .sale-list-money{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.sales-page .sale-list-total{text-align:right}.sale-list-actions{display:flex;justify-content:flex-end;gap:8px}.sales-page .sale-list-actions>.sale-list-icon{display:grid;place-items:center;width:40px;height:40px;padding:8px;border:0;border-radius:0;background:transparent;color:#000;box-shadow:none;flex:none}.sale-list-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.sales-page .sale-list-actions>.sale-list-icon[aria-expanded=true]{background:transparent;color:#000}.sale-list-details>td{background:#f5f7f9}.sale-list-details table{font-size:.9em}.sales-page .sale-list-details>td{padding:16px}.sale-list-details th:first-child{width:50%}
 
 @media(hover:hover){.sales-page .sale-list-actions>.sale-list-icon:hover{color:#17324d;background:#eef0f2;border-radius:6px}}
+
+.sales-page .sales-table>table>thead>tr>th.sale-list-money{text-align:left}
