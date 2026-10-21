@@ -319,7 +319,7 @@ async function saveSale() {
   s.uncertain=false;s.saved=rows.sale;s.lines=rows.lines;s.phase="saved";
 }
 function saleListRowMarkup(row) {
-  const e=escapeHtml,id=String(row[0]),expanded=salesState.expandedSale===id,detailId=`sale-details-${id}`;
+  const e=escapeHtml,id=String(row[0]),expanded=(salesState.expandedSales||[]).includes(id),detailId=`sale-details-${id}`;
   const eye='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
   const printer='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8V3h12v5M6 17H3V9h18v8h-3M6 14h12v7H6z"/><path d="M17 11h1"/></svg>';
   const lines=salesState.lines.filter(line=>String(line[1])===id);
@@ -418,10 +418,10 @@ document.addEventListener("click",async event=>{
   if(action==="cancel-price"){s.pending=null;s.error="";persistSaleDraft();render();}
   if(action==="remove"){s.items.splice(Number(button.dataset.index),1);persistSaleDraft();render();}
   if(action==="print")printSale(s.saved);
-  if(action==="view"){s.expandedSale=s.expandedSale===button.dataset.id?"":button.dataset.id;render();document.querySelector(`[data-sale-action="view"][data-id="${CSS.escape(button.dataset.id)}"]`)?.focus({preventScroll:true});}
+  if(action==="view"){const id=button.dataset.id;const expanded=s.expandedSales||[];s.expandedSales=expanded.includes(id)?expanded.filter(value=>value!==id):[...expanded,id];render();document.querySelector(`[data-sale-action="view"][data-id="${CSS.escape(button.dataset.id)}"]`)?.focus({preventScroll:true});}
   if(action==="reprint")printSale(s.rows.find(r=>r[0]===button.dataset.id));
   if(action==="csv")exportSalesCSV();
-  if(action==="list"){s.showMenu=false;s.phase="list";s.expandedSale="";s.searched=false;s.rows=[];s.lines=[];render();return;}
+  if(action==="list"){s.showMenu=false;s.phase="list";s.expandedSales=[];s.searched=false;s.rows=[];s.lines=[];render();return;}
   if(action==="search" && s.phase==="list"){for(const input of document.querySelectorAll("[data-sale-date]"))if(!input.reportValidity())return;void salesWork(async()=>{const sheets=await loadSpreadsheetSheetMetadata();s.rows=findSheetByName(sheets,"Vendas")?await saleValues("Vendas!A2:M"):[];s.lines=findSheetByName(sheets,"VendasLinhas")?await saleValues("VendasLinhas!A2:H"):[];s.searched=true;});}
   if(action==="verify")void salesWork(async()=>{const rows=await saleValues("Vendas!A2:M"),found=rows.find(r=>r[0]===s.id);if(found){s.saved=found;s.lines=await saleValues("VendasLinhas!A2:H");s.phase="saved";s.uncertain=false;}else if(Date.now()-(s.submittedAt||0)<185000){s.error="O pedido anterior ainda pode estar em processamento. Aguarda três minutos desde o envio e verifica novamente.";}else{s.uncertain=false;s.error="Venda não encontrada. Podes voltar a confirmar; o ID será mantido para evitar duplicações.";}});
 });
