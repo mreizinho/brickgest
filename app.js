@@ -1116,7 +1116,7 @@ function alignDesktopHeader() {
     document.querySelector('.masthead')?.style.removeProperty('--screen-heading-left');
     return;
   }
-  const panel = document.querySelector('.app-content .batch-panel, .app-content .sheets-explainer, .app-content .consultation-panel, .app-content .scan-panel');
+  const panel = document.querySelector('.app-content .batch-panel, .app-content .sheets-explainer, .app-content .consultation-panel, .app-content .scan-panel, .app-content .sales-page');
   const header = document.querySelector('.masthead');
   if (!panel || !header) return;
   const tabs = header.querySelector('.desktop-tabs');

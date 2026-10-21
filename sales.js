@@ -241,6 +241,7 @@ function renderSalesPage() {
   if (state.scannerOpen && app.querySelector(".camera-scanner")) app.querySelector(".app-content").innerHTML=salesMarkup();
   else app.innerHTML=`${headerMarkup()}<div class="app-content">${salesMarkup()}</div>${state.scannerOpen?scannerMarkup():""}`;
   setupMobileConcludeButton();
+  alignDesktopHeader();
 }
 async function salesRequest(path, body) {
   if (!state.loggedIn || !state.accessToken) throw new Error("Inicia sessão com Google para gerir vendas.");
