@@ -78,3 +78,8 @@ run(`salesState.expandedSales=['sale-preview','another-sale']`);
 assert.ok(run('saleListRowMarkup(previewRow).includes("Assembly &lt;Square&gt;")'));
 assert.ok(run('saleListRowMarkup(previewRow).includes(' + JSON.stringify('aria-expanded="true"') + ')'));
 assert.ok(run('saleListRowMarkup(["another-sale","date","Recibo","Cliente","","","","",100,""]).includes('+JSON.stringify('aria-expanded="true"')+')'),'Multiple sales remain expanded');
+
+run(`salesState.showMenu=false;salesState.phase='list';salesState.searched=true;salesState.filter='';salesState.integration='';salesState.from='';salesState.to='';salesState.rows=[previewRow,['another-sale','21/10/2026','Recibo','Cliente','','','','',100,'Não aplicável']];salesState.expandedSales=['sale-preview'];`);
+assert.ok(!run('salesMarkup().includes(' + JSON.stringify('data-sale-action="collapse-all"') + ')'));
+run(`salesState.expandedSales.push('another-sale')`);
+assert.ok(run('salesMarkup().includes(' + JSON.stringify('data-sale-action="collapse-all"') + ')'));
