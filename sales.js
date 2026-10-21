@@ -208,7 +208,7 @@ function salesMarkup() {
   let body;
   if (s.phase === "list") {
     const rows = s.searched?filteredSales():[];
-    body = `<div class="sales-grid sales-search-filters"><label>Desde<input type="date" data-sale-field="from" value="${e(s.from)}"></label><label>Até<input type="date" data-sale-field="to" value="${e(s.to)}"></label><label>Documento<select data-sale-field="filter">${["","Factura","Recibo"].map(v=>`<option value="${v}" ${s.filter===v?"selected":""}>${v||"Todos"}</option>`).join("")}</select></label><label>TOConline<select data-sale-field="integration">${["","Pendente","Integrada","Não aplicável"].map(v=>`<option value="${v}" ${s.integration===v?"selected":""}>${v||"Todos"}</option>`).join("")}</select></label></div><div class="batch-actions sales-search-actions"><button type="button" class="primary" data-sale-action="search" ${s.busy?"disabled":""}>PESQUISAR</button></div>${s.searched?`<button data-sale-action="csv">Exportar CSV</button><div class="sales-table"><table><thead><tr><th>Data</th><th>Cliente</th><th>Documento</th><th>Total</th><th>TOConline</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${e(r[1])}</td><td>${e(r[3])}</td><td>${e(r[2])}</td><td>${saleMoney(Math.round(Number(r[8])*100))}</td><td>${e(r[9])}</td><td><button data-sale-action="reprint" data-id="${e(r[0])}">Consultar / imprimir</button></td></tr>`).join("")}</tbody></table></div><p class="sales-total">${rows.length} vendas · ${saleMoney(rows.reduce((a,r)=>a+Math.round(Number(r[8])*100),0))}</p>`:'<p>Escolhe os critérios e carrega em PESQUISAR.</p>'}`;
+    body = `<div class="sales-grid sales-search-filters"><label>Desde<input type="date" data-sale-field="from" value="${e(s.from)}"></label><label>Até<input type="date" data-sale-field="to" value="${e(s.to)}"></label><label>Documento<select data-sale-field="filter">${["","Factura","Recibo"].map(v=>`<option value="${v}" ${s.filter===v?"selected":""}>${v||"Todos"}</option>`).join("")}</select></label><label>TOConline<select data-sale-field="integration" ${s.filter==="Recibo"?"disabled":""}>${["","Pendente","Integrada","Não aplicável"].map(v=>`<option value="${v}" ${s.integration===v?"selected":""}>${v||"Todos"}</option>`).join("")}</select></label></div><div class="batch-actions sales-search-actions"><button type="button" class="primary" data-sale-action="search" ${s.busy?"disabled":""}>PESQUISAR</button></div>${s.searched?`<button data-sale-action="csv">Exportar CSV</button><div class="sales-table"><table><thead><tr><th>Data</th><th>Cliente</th><th>Documento</th><th>Total</th><th>TOConline</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${e(r[1])}</td><td>${e(r[3])}</td><td>${e(r[2])}</td><td>${saleMoney(Math.round(Number(r[8])*100))}</td><td>${e(r[9])}</td><td><button data-sale-action="reprint" data-id="${e(r[0])}">Consultar / imprimir</button></td></tr>`).join("")}</tbody></table></div><p class="sales-total">${rows.length} vendas · ${saleMoney(rows.reduce((a,r)=>a+Math.round(Number(r[8])*100),0))}</p>`:'<p>Escolhe os critérios e carrega em PESQUISAR.</p>'}`;
   } else if (s.phase === "saved") {
     body = `<article><h2>Venda registada</h2><p>${e(s.saved[0])}</p><p>${e(s.saved[3])} · ${saleMoney(Math.round(Number(s.saved[8])*100))}</p><button data-sale-action="print">Imprimir / guardar PDF</button></article>`;
   } else if (s.pending) {
@@ -309,7 +309,7 @@ async function saveSale() {
 }
 function filteredSales() {
   const s=salesState;
-  return s.rows.filter(r=>{const [d,m,y]=String(r[1]).split(" ")[0].split("/");const date=`${y}-${m}-${d}`;return (!s.from||date>=s.from)&&(!s.to||date<=s.to)&&(!s.filter||r[2]===s.filter)&&(!s.integration||r[9]===s.integration);});
+  return s.rows.filter(r=>{const [d,m,y]=String(r[1]).split(" ")[0].split("/");const date=`${y}-${m}-${d}`;return (!s.from||date>=s.from)&&(!s.to||date<=s.to)&&(!s.filter||r[2]===s.filter)&&(s.filter==="Recibo"||!s.integration||r[9]===s.integration);});
 }
 function printSale(row) {
   const e=escapeHtml, lines=salesState.lines.filter(l=>l[1]===row[0]);
@@ -336,7 +336,7 @@ document.addEventListener("input",event=>{
   if (el.dataset.salePendingPrice !== undefined && s.pending) {s.pending.item.price=el.value;const ok=el.parentElement?.querySelector(".sale-price-ok");if(ok){ok.hidden=!el.value.trim();ok.disabled=!canAcceptSalePrice();}}
   if (el.dataset.salePendingLocation !== undefined && s.pending) setSaleLocation("pending",Number(el.dataset.salePendingLocation),el.value);
   if (el.dataset.saleCustomer) s.customer[el.dataset.saleCustomer]=el.value;
-  if (el.dataset.saleField) {s[el.dataset.saleField]=el.value;if(s.phase==="list")s.searched=false;if (["type","from","to","filter","integration"].includes(el.dataset.saleField)) render();}
+  if (el.dataset.saleField) {s[el.dataset.saleField]=el.value;if(el.dataset.saleField==="filter"&&s.filter==="Recibo")s.integration="";if(s.phase==="list")s.searched=false;if (["type","from","to","filter","integration"].includes(el.dataset.saleField)) render();}
   if (el.dataset.salePrice!==undefined) s.items[Number(el.dataset.salePrice)].price=el.value;
   if (el.dataset.saleItem!==undefined) setSaleLocation(el.dataset.saleItem,Number(el.dataset.location),el.value);
   if(el.dataset.saleItem!==undefined || el.dataset.salePendingLocation!==undefined) {
