@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const c=vm.createContext({console,document:{addEventListener(){}},window:{addEventListener(){}}});
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8').replace(/writeAppHistory\("home", true\);\s*restoreSession\(\);\s*$/,''),c);
+const run=s=>vm.runInContext(s,c);
+run(`let top=98,height=700;const styles={setProperty(k,v){this[k]=v},removeProperty(k){delete this[k]}};const filters={style:styles,classList:{contains(){return true}}};const panel={querySelector(){return filters},getBoundingClientRect(){return {left:200,right:1240}}};const content={getBoundingClientRect(){return {top}},get clientHeight(){return height}};document.querySelector=s=>s==='.app-content'?content:panel;window.innerWidth=1440;window.getComputedStyle=()=>({paddingLeft:'34px',paddingRight:'34px'});alignFloatingConsultationFilters()`);
+assert.equal(run('styles.top'),'98px');assert.equal(run('styles["--filter-content-left"]'),'234px');
+run('top=64;height=500;window.innerWidth=600;alignFloatingConsultationFilters()');
+assert.equal(run('styles.top'),'64px');assert.equal(run('styles.maxHeight'),'500px');assert.equal(run('styles["--filter-content-left"]'),undefined);
+run('top=98;window.innerWidth=1440;alignFloatingConsultationFilters()');assert.equal(run('styles.top'),'98px');
+console.log('Floating filter resize tests passed: position, available height and desktop/mobile alignment');

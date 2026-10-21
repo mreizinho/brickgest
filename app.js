@@ -1127,12 +1127,15 @@ function alignDesktopHeader() {
 window.addEventListener('resize', alignDesktopHeader);
 
 let consultationFiltersObserver = null;
+let consultationFiltersResizeObserver = null;
 
 function alignFloatingConsultationFilters() {
-  if(window.innerWidth<=850)return;
   const panel=document.querySelector('.app-content .consultation-panel');
   const filters=panel?.querySelector('.consultation-filters');
   if(!panel||!filters)return;
+  const content=document.querySelector(".app-content");
+  if(filters.classList.contains("consultation-floating-filters")&&content){filters.style.top=`${content.getBoundingClientRect().top}px`;filters.style.maxHeight=`${content.clientHeight}px`;}
+  if(window.innerWidth<=850){filters.style.removeProperty("--filter-content-left");filters.style.removeProperty("--filter-content-right");return;}
   const bounds=panel.getBoundingClientRect(),padding=window.getComputedStyle(panel);
   filters.style.setProperty('--filter-content-left',`${bounds.left+(parseFloat(padding.paddingLeft)||0)}px`);
   filters.style.setProperty('--filter-content-right',`${Math.max(0,window.innerWidth-bounds.right)+(parseFloat(padding.paddingRight)||0)}px`);
@@ -1141,6 +1144,7 @@ window.addEventListener('resize',alignFloatingConsultationFilters);
 
 function setupFloatingConsultationFilters() {
   consultationFiltersObserver?.disconnect();
+  consultationFiltersResizeObserver?.disconnect();
   if (state.mode !== 'consulta') return;
   const content = document.querySelector('.app-content');
   const filters = content?.querySelector('.consultation-filters');
@@ -1176,6 +1180,7 @@ function setupFloatingConsultationFilters() {
   }, { root: content, threshold: 0 });
   consultationFiltersObserver.observe(marker);
   alignFloatingConsultationFilters();
+  if(window.ResizeObserver){consultationFiltersResizeObserver=new window.ResizeObserver(alignFloatingConsultationFilters);consultationFiltersResizeObserver.observe(content);const header=document.querySelector(".masthead");if(header)consultationFiltersResizeObserver.observe(header);}
 }
 
 let mobileConcludeObserver = null;
