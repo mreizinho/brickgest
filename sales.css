@@ -68,3 +68,5 @@
 @media(hover:hover){.sales-page .sale-list-actions>.sale-list-icon:hover{color:#17324d;background:#eef0f2;border-radius:6px}}
 
 .sales-page .sales-table>table>thead>tr>th.sale-list-money{text-align:center}
+
+.sales-page .sales-table>table>thead>tr>th:nth-child(3),.sales-page .sales-table>table>tbody>tr:not(.sale-list-details)>td:nth-child(3){width:1%;white-space:nowrap;padding-left:8px;padding-right:8px}
