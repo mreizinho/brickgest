@@ -204,7 +204,7 @@ function saleDateISO(value) {
   return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===iso?iso:null;
 }
 function saleDateFilter(key,label,value) {
-  return `<label for="sale-date-${key}">${label}<span class="sale-date-control"><input id="sale-date-${key}" type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" data-sale-date="${key}" value="${escapeHtml(saleDateDisplay(value))}"><span class="sale-date-calendar" aria-hidden="true">▦</span><input type="date" class="sale-date-native" data-sale-field="${key}" value="${escapeHtml(value)}" aria-label="Escolher data ${label.toLowerCase()}"></span></label>`;
+  return `<label for="sale-date-${key}">${label}<span class="sale-date-control"><input id="sale-date-${key}" type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" data-sale-date="${key}" value="${escapeHtml(saleDateDisplay(value))}"><span class="sale-date-calendar" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 17H5V8h14z"/></svg></span><input type="date" class="sale-date-native" data-sale-field="${key}" value="${escapeHtml(value)}" aria-label="Escolher data ${label.toLowerCase()}"></span></label>`;
 }
 function saleRequiredCustomerFields(type) { return type==="Factura"?["name","tax"]:["name"]; }
 function salesMarkup() {
