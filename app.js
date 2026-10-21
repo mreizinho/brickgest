@@ -1128,6 +1128,17 @@ window.addEventListener('resize', alignDesktopHeader);
 
 let consultationFiltersObserver = null;
 
+function alignFloatingConsultationFilters() {
+  if(window.innerWidth<=850)return;
+  const panel=document.querySelector('.app-content .consultation-panel');
+  const filters=panel?.querySelector('.consultation-filters');
+  if(!panel||!filters)return;
+  const bounds=panel.getBoundingClientRect(),padding=window.getComputedStyle(panel);
+  filters.style.setProperty('--filter-content-left',`${bounds.left+(parseFloat(padding.paddingLeft)||0)}px`);
+  filters.style.setProperty('--filter-content-right',`${Math.max(0,window.innerWidth-bounds.right)+(parseFloat(padding.paddingRight)||0)}px`);
+}
+window.addEventListener('resize',alignFloatingConsultationFilters);
+
 function setupFloatingConsultationFilters() {
   consultationFiltersObserver?.disconnect();
   if (state.mode !== 'consulta') return;
@@ -1164,6 +1175,7 @@ function setupFloatingConsultationFilters() {
     filters.classList.toggle('consultation-floating-filters', floating);
   }, { root: content, threshold: 0 });
   consultationFiltersObserver.observe(marker);
+  alignFloatingConsultationFilters();
 }
 
 let mobileConcludeObserver = null;

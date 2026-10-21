@@ -522,3 +522,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 /* Leave scrollable space above the phone navigation area. */
 @media(max-width:850px){.app-content{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));scroll-padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}.app-content .batch-actions:last-child{margin-bottom:8px}}
+
+@media(min-width:851px){.consultation-floating-filters>summary{padding-left:var(--filter-content-left,34px);padding-right:var(--filter-content-right,34px)}}
