@@ -54,3 +54,5 @@
 .sales-page .sale-price-entry:has(>input:focus)::after{content:'';position:absolute;inset:0;z-index:2;border:2px solid #17324d;border-radius:6px;pointer-events:none}.sales-page .sale-price-entry>input:focus{outline:none;box-shadow:none}
 
 .sales-page .sale-customer-extra>.sales-customer-grid{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}
+
+@media(max-width:850px){.sales-page .sales-search-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}.sales-page .sales-search-filters>label{min-width:0}.sales-page .sales-search-filters input,.sales-page .sales-search-filters select{width:100%;min-width:0;box-sizing:border-box}}
