@@ -66,3 +66,8 @@ assert.ok(run('invoicePreview.includes("Rua 1<br>Porto")'));
 assert.ok(!run('invoicePreview.includes("Old seller")'));
 assert.ok(!run('invoicePreview.includes("ATCUD:")'));
 assert.ok(!run('invoicePreview.includes("23%")'));
+assert.equal(run('saleDateDisplay("2026-10-21")'),'21/10/2026');
+assert.equal(run('saleDateISO("21/10/2026")'),'2026-10-21');
+assert.equal(run('saleDateISO("31/02/2026")'),null);
+assert.equal(run('saleDateISO("10/21/2026")'),null);
+assert.equal(run('saleDateISO("")'),'');
