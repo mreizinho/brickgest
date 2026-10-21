@@ -70,3 +70,5 @@
 .sales-page .sales-table>table>thead>tr>th.sale-list-money{text-align:center}
 
 .sales-page .sales-table>table>thead>tr>th:nth-child(3),.sales-page .sales-table>table>tbody>tr:not(.sale-list-details)>td:nth-child(3){width:1%;white-space:nowrap;padding-left:8px;padding-right:8px}
+
+.sales-page .sales-table>table>thead>tr>th:nth-child(5),.sales-page .sales-table>table>tbody>tr:not(.sale-list-details)>td:nth-child(5){padding-left:25px}
