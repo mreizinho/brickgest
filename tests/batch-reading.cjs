@@ -17,7 +17,7 @@ for (const type of ['entrada', 'saida', 'transferencia']) {
   run(`state.mode='lote';state.batch={...emptyBatchState(),movementType:'${type}',items:${qty ? `[{code:'10300',name:'Test',qty:${qty},imageUrl:'image',locations:[]}]` : '[]'}};`);
   const scan = run('batchScanMarkup()');
   assert.ok(scan.includes(`<p>${title}${qty > 1 ? ' EM LOTE' : ''}</p>`));
-  assert.ok(scan.includes(`<h2>Ler ${qty > 1 ? 'conjuntos' : 'conjunto'}</h2>`));
+  assert.ok(scan.includes('<h2>Registar Artigos</h2>'));
   const conditions = run('batchConditionsMarkup()');
   assert.ok(conditions.includes(`CONCLUIR ${qty > 1 ? 'LOTE' : 'MOVIMENTO'}`));
   assert.ok(conditions.includes(`<h2>${qty > 1 ? 'Condi\u00e7\u00f5es comuns' : 'Condi\u00e7\u00f5es'}</h2>`));

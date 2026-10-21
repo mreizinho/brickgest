@@ -58,7 +58,7 @@ for(const reference of ['CUSTOM-001234567','10255-1','00123','=1+1','90071992547
 assert.equal(run('formatMoneyValue(1800)').replace(/\s/g,' '),'1.800,00 €');
 assert.equal(run('formatMoneyValue(1234567.89)').replace(/\s/g,' '),'1.234.567,89 €');
 
-run(`const invoicePreview=salePrintMarkup(['sale','21/10/2026','Factura','<Cliente>','Rua 1\nPorto','','','123456789',1800,'Pendente','','','Old seller'],[['line','sale','10255','Assembly Square','',1,1800,1800]]);`);
+run(`const invoicePreview=salePrintMarkup(['sale','21/10/2026','Factura','<Cliente>','Rua 1\\nPorto','','','123456789',1800,'Pendente','','','Old seller'],[['line','sale','10255','Assembly Square','',1,1800,1800]]);`);
 assert.ok(run('invoicePreview.includes("CARLOS JORGE DA SILVA ISIDORO")'));
 assert.ok(run('invoicePreview.includes("PT214989640")'));
 assert.ok(run('invoicePreview.includes("&lt;Cliente&gt;")'));
