@@ -38,7 +38,7 @@ assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('<s>100,00
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('Preço com desconto')`));
 run(`applyBatchDiscount('A',false,'percent',10)`);
 assert.equal(run('state.batch.items[0].entryOriginalCost'),100,'Keep the original price across repeated discounts');
-assert.equal(run('state.batch.items[0].cost'),'72');
+assert.equal(run('state.batch.items[0].cost'),'90','A new discount replaces the previous one using the original cost');
 assert.equal(run('JSON.parse(JSON.stringify(state.batch)).items[0].entryOriginalCost'),100);
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('data-action="batch-discount-reset"')`));
 run(`restoreBatchEntryPrice('A')`);
@@ -51,3 +51,15 @@ assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('97,20')`)
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[1],1).includes('32,40')`));
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[2],2).includes('batch-price-separator')`));
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[2],2).includes('202,50')&&batchEntryPriceMarkup(state.batch.items[2],2).includes('182,25')`));
+run(`state.batch.items=[{code:'10230',qty:1,cost:'200'},{code:'10250',qty:1,cost:'40'},{code:'10255',qty:1,cost:'250'}];applyBatchDiscount('10230',false,'percent',10);`);
+assert.equal(run('state.batch.items[0].cost'),'180');
+run(`applyBatchDiscount('10250',true,'percent',10)`);
+assert.equal(run('state.batch.items.map(item=>item.cost).join(",")'),'180,36,225','Global discounts replace existing discounts rather than compound');
+run(`applyBatchDiscount('10250',true,'percent',10)`);
+assert.equal(run('state.batch.items.map(item=>item.cost).join(",")'),'180,36,225','Applying the same discount again is idempotent');
+run(`const replacement=batchDiscountPlan(state.batch.items,'amount',49);`);
+assert.equal(run('replacement.total'),49000,'Preview and amount distribution must use original costs');
+assert.equal(run('replacement.costs.join(",")'),'180,36,225');
+run(`applyBatchDiscount('10230',false,'percent',20)`);
+assert.equal(run('state.batch.items[0].cost'),'160','Individual replacement also uses original price');
+assert.equal(run('state.batch.items[1].cost'),'36','Other articles remain unchanged');

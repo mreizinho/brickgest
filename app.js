@@ -1053,7 +1053,7 @@ function batchReviewMarkup() {
 
 function batchDiscountPlan(items,type,value) {
   if(!items.length)throw new Error("O lote não tem artigos.");
-  const lines=items.map(item=>{const qty=Number(item.qty),cost=entryCost(item.cost);if(!Number.isSafeInteger(qty)||qty<1)throw new Error("Quantidade inválida.");const cents=Math.round(cost*qty*100);if(!Number.isSafeInteger(cents))throw new Error("Valor demasiado elevado.");return {qty,cents};});
+  const lines=items.map(item=>{const qty=Number(item.qty),cost=entryCost(item.entryOriginalCost??item.cost);entryCost(item.cost);if(!Number.isSafeInteger(qty)||qty<1)throw new Error("Quantidade inválida.");const cents=Math.round(cost*qty*100);if(!Number.isSafeInteger(cents))throw new Error("Valor demasiado elevado.");return {qty,cents};});
   const total=lines.reduce((sum,line)=>sum+line.cents,0),amount=Number(String(value).trim().replace(",","."));
   if(!["percent","amount"].includes(type)||!String(value).trim()||!Number.isFinite(amount)||amount<0)throw new Error("Indica um desconto válido.");
   if(type==="percent"&&amount>100)throw new Error("A percentagem não pode ultrapassar 100%.");
