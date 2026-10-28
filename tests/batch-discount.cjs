@@ -46,3 +46,8 @@ assert.equal(run('state.batch.items[0].cost'),'100');
 assert.equal(run('state.batch.items[0].entryOriginalCost'),undefined);
 assert.equal(run('state.batch.items[1].cost'),'200','Reset must not change other article prices');
 assert.ok(!run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('data-action="batch-discount-reset"')`));
+run(`state.batch.items=[{code:'A',name:'A',qty:1,cost:'97.2'},{code:'B',name:'B',qty:1,cost:'32.4'},{code:'C',name:'C',qty:1,cost:'182.25',entryOriginalCost:202.5}];`);
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('97,20')`));
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[1],1).includes('32,40')`));
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[2],2).includes('batch-price-separator')`));
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[2],2).includes('202,50')&&batchEntryPriceMarkup(state.batch.items[2],2).includes('182,25')`));
