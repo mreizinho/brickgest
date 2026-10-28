@@ -3031,6 +3031,12 @@ document.addEventListener("pointerout", event => {
   document.querySelectorAll('.hamburger-button').forEach(item => { item.dataset.closeHoverReady = "true"; });
 });
 
+document.addEventListener("dblclick", event => {
+  const values=event.target.closest?.(".batch-entry-price-values");
+  const input=values?.querySelector("[data-batch-cost-code]");
+  if(!input||input.disabled||state.batch.saving)return;
+  event.preventDefault();input.focus({preventScroll:true});input.select();
+});
 document.addEventListener("pointerdown", event => {
   const values=event.target.closest?.(".batch-entry-price-values");
   const input=values?.querySelector("[data-batch-cost-code]");
