@@ -1161,8 +1161,28 @@ function render() {
   setupFloatingConsultationFilters();
   alignDesktopHeader();
   renderBatchKeypadWindow();
+  alignBatchPriceSeparators();
 }
 
+function alignBatchPriceSeparators() {
+  document.querySelectorAll('.batch-entry-price-values').forEach(values => {
+    const separator = values.querySelector('.batch-price-separator');
+    if (!separator) return;
+    separator.style.transform = '';
+    if (window.innerWidth > 850) return;
+    const finalPrice = values.querySelector('.batch-price-display');
+    const originalPrice = values.querySelector('.batch-price-original s');
+    if (!finalPrice || !originalPrice) return;
+    const range = document.createRange();
+    range.selectNodeContents(finalPrice);
+    const finalRight = range.getBoundingClientRect().right;
+    range.selectNodeContents(originalPrice);
+    const originalLeft = range.getBoundingClientRect().left;
+    const rect = separator.getBoundingClientRect();
+    separator.style.transform = `translateX(${(finalRight + originalLeft - rect.left - rect.right) / 2}px)`;
+  });
+}
+window.addEventListener('resize', alignBatchPriceSeparators);
 function alignDesktopHeader() {
   if (window.innerWidth <= 850) return;
   if (!state.mode) {
