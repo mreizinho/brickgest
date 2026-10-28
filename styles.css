@@ -524,3 +524,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 @media(max-width:850px){.app-content{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));scroll-padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}.app-content .batch-actions:last-child{margin-bottom:8px}}
 
 @media(min-width:851px){.consultation-floating-filters>summary{padding-left:var(--filter-content-left,34px);padding-right:var(--filter-content-right,34px)}}
+
+.batch-conditions-panel .batch-actions.batch-discount-actions{grid-template-columns:minmax(0,1fr)}.batch-discount-actions>button{width:100%}.batch-discount-dialog form>label{display:grid;gap:8px;margin:16px 0}.batch-discount-dialog input,.batch-discount-dialog select{width:100%;height:46px;padding:0 12px;font:inherit;border:1px solid #cbd0d3;border-radius:4px;background:white}.batch-discount-dialog select{appearance:none;padding-right:56px}.batch-discount-dialog .batch-actions{grid-template-columns:1fr}.batch-discount-dialog .discount-error{color:#a41d21}.batch-discount-dialog .discount-preview{font-size:14px}
