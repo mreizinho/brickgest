@@ -1077,6 +1077,15 @@ function restoreBatchEntryPrice(code) {
   const item=batchItemByCode(code);if(!item||item.entryOriginalCost===undefined)return;
   item.cost=String(item.entryOriginalCost);delete item.entryOriginalCost;
 }
+function chooseBatchDiscountResetScope(code) {
+  if(state.batch.discountLinked===false)return Promise.resolve("item");
+  if(document.querySelector(".batch-discount-dialog"))return Promise.resolve("cancel");
+  const item=batchItemByCode(code),previousFocus=document.activeElement,dialog=document.createElement("dialog");
+  dialog.className="app-confirm-dialog batch-discount-dialog batch-discount-reset-dialog";
+  dialog.setAttribute("aria-labelledby","batch-discount-reset-title");
+  dialog.innerHTML=`<h2 id="batch-discount-reset-title">Remover desconto</h2><p>Os artigos estão ligados. Queres repor o preço original apenas deste artigo ou de todos?</p><p>${escapeHtml(item?.code||code)} · ${escapeHtml(item?.name||"")}</p><form method="dialog"><div class="batch-actions"><button class="secondary" value="cancel" autofocus>CANCELAR</button><button class="secondary" value="item">SÓ ESTE ARTIGO</button><button class="primary" value="all">TODOS OS ARTIGOS</button></div></form>`;
+  return new Promise(resolve=>{dialog.addEventListener("close",()=>{const choice=dialog.returnValue;dialog.remove();if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});resolve(["item","all"].includes(choice)?choice:"cancel");},{once:true});document.body.appendChild(dialog);dialog.showModal();});
+}
 function batchEntryPriceMarkup(item,index) {
   const linked=state.batch.discountLinked!==false,e=escapeHtml,discounted=item.entryOriginalCost!==undefined&&Number(item.entryOriginalCost)>Number(item.cost);
   return `<div class="batch-entry-price-field"><label for="batch-entry-cost-${index}"><span>${e(item.code)} · ${e(item.name)} — Valor unitário (€) <b>*</b></span></label><div class="batch-entry-price-control${discounted?" has-discount":""}"><div class="batch-entry-price-values"><div class="batch-price-final"><input id="batch-entry-cost-${index}" type="number" min="0" step="any" inputmode="decimal" enterkeyhint="done" data-batch-cost-code="${e(item.code)}" value="${e(item.cost??"")}" aria-label="${discounted?"Preço com desconto":"Valor unitário"} de ${e(item.code)}" required><strong class="batch-price-display" aria-hidden="true">${item.cost!==""&&item.cost!==undefined&&item.cost!==null&&Number.isFinite(Number(item.cost))?formatMoneyValue(Number(item.cost)):""}</strong></div>${discounted?`<span class="batch-price-separator" aria-hidden="true">/</span><span class="batch-price-original" aria-label="Preço original"><s>${formatMoneyValue(Number(item.entryOriginalCost))}</s></span>`:""}</div>${discounted?`<button type="button" class="batch-price-reset" data-action="batch-discount-reset" data-code="${e(item.code)}" title="Remover desconto e repor preço original" aria-label="Repor preço original de ${e(item.code)}"><span class="material-symbols-outlined" aria-hidden="true">undo</span></button>`:""}<button type="button" class="batch-price-link" data-action="batch-discount-link" aria-pressed="${linked}" title="${linked?"Desconto ligado: todo o lote":"Desconto individual: apenas este artigo"}" aria-label="Ligar desconto a todos os artigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/>${linked?"":'<path d="m3 3 18 18"/>'}</svg></button><button type="button" class="batch-price-discount" data-action="batch-discount" data-code="${e(item.code)}" title="Cupão / Desconto" aria-label="Aplicar desconto a ${e(item.code)}"><span class="material-symbols-outlined" aria-hidden="true">sell</span></button></div></div>`;
@@ -3406,7 +3415,7 @@ document.addEventListener("click", async event => {
     renderPreservingContentScroll();
     return;
   }
-  if(action==="batch-discount-reset"){if(state.batch.saving)return;restoreBatchEntryPrice(event.target.closest("[data-code]")?.dataset.code);persistBatchDraft();render();return;}
+  if(action==="batch-discount-reset"){if(state.batch.saving)return;const batch=state.batch,code=event.target.closest("[data-code]")?.dataset.code,scope=await chooseBatchDiscountResetScope(code);if(scope==="cancel"||state.batch!==batch||state.batch.saving)return;if(scope==="all")state.batch.items.forEach(item=>restoreBatchEntryPrice(item.code));else restoreBatchEntryPrice(code);persistBatchDraft();render();return;}
   if(action==="batch-discount-link"){if(state.batch.saving)return;state.batch.discountLinked=state.batch.discountLinked===false;persistBatchDraft();render();return;}
   if (action === "batch-discount") {openBatchDiscountDialog(event.target.closest("[data-code]")?.dataset.code);return;}
   if (action === "batch-submit") {
