@@ -1065,22 +1065,32 @@ function batchDiscountPlan(items,type,value) {
   for(const line of [...allocation].sort((a,b)=>b.remainder-a.remainder||a.index-b.index)){if(remaining<=0)break;line.cents++;remaining--;}
   return {total,discount,target,costs:allocation.map((line,index)=>line.cents/100/lines[index].qty)};
 }
-function openBatchDiscountDialog() {
+function batchDiscountItems(code,linked) {
+  if(linked)return state.batch.items;
+  const item=batchItemByCode(code);if(!item)throw new Error("Artigo não encontrado.");return [item];
+}
+function applyBatchDiscount(code,linked,type,value) {
+  const items=batchDiscountItems(code,linked),plan=batchDiscountPlan(items,type,value);
+  plan.costs.forEach((cost,index)=>items[index].cost=String(cost));return plan;
+}
+function batchEntryPriceMarkup(item,index) {
+  const linked=state.batch.discountLinked!==false,e=escapeHtml;
+  return `<div class="batch-entry-price-field"><label for="batch-entry-cost-${index}"><span>${e(item.code)} · ${e(item.name)} — Valor unitário (€) <b>*</b></span></label><div class="batch-entry-price-control"><input id="batch-entry-cost-${index}" type="number" min="0" step="any" inputmode="decimal" data-batch-cost-code="${e(item.code)}" value="${e(item.cost??"")}" required><button type="button" class="batch-price-discount" data-action="batch-discount" data-code="${e(item.code)}" title="Cupão / Desconto" aria-label="Aplicar desconto a ${e(item.code)}">%</button><button type="button" class="batch-price-link" data-action="batch-discount-link" aria-pressed="${linked}" title="${linked?"Desconto ligado: todo o lote":"Desconto individual: apenas este artigo"}" aria-label="Ligar desconto a todos os artigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/>${linked?"":'<path d="m3 3 18 18"/>'}</svg></button></div></div>`;
+}
+function openBatchDiscountDialog(code=state.batch.items[0]?.code) {
   if(state.batch.saving||state.batch.movementType!=="entrada"||isInventoryMode()||document.querySelector(".batch-discount-dialog"))return;
-  let initial;
-  try{initial=batchDiscountPlan(state.batch.items,"amount",0);}catch{showMovementNotice("Preenche o valor unitário de todos os artigos antes de aplicar o desconto.","error");return;}
+  const item=batchItemByCode(code);if(!item)return;
   const previousFocus=document.activeElement,dialog=document.createElement("dialog");
   dialog.className="app-confirm-dialog batch-discount-dialog";dialog.setAttribute("aria-labelledby","batch-discount-title");
-  dialog.innerHTML=`<h2 id="batch-discount-title">Cupão / Desconto</h2><p>Total do lote: <strong>${formatMoneyValue(initial.total/100)}</strong></p><form><label>Tipo de desconto<div class="select-control"><select name="kind"><option value="percent">Percentagem (%)</option><option value="amount">Valor (€)</option></select><span class="select-arrow" aria-hidden="true">▾</span></div></label><label><span data-discount-label>Percentagem (%)</span><input name="discount" type="number" inputmode="decimal" min="0" max="100" step="0.01" required autofocus></label><p class="discount-preview" aria-live="polite"></p><p class="discount-error" role="alert" hidden></p><div class="batch-actions"><button type="button" class="secondary">CANCELAR</button><button type="submit" class="primary">APLICAR DESCONTO</button></div></form>`;
-  const form=dialog.querySelector("form"),kind=form.elements.kind,input=form.elements.discount,error=dialog.querySelector(".discount-error"),preview=dialog.querySelector(".discount-preview");
-  const update=()=>{input.max=kind.value==="percent"?"100":String(initial.total/100);dialog.querySelector("[data-discount-label]").textContent=kind.value==="percent"?"Percentagem (%)":"Valor (€)";error.hidden=true;preview.textContent="";if(input.value!==""){try{const plan=batchDiscountPlan(state.batch.items,kind.value,input.value);preview.textContent=`Desconto: ${formatMoneyValue(plan.discount/100)} · Total final: ${formatMoneyValue(plan.target/100)}`;}catch(e){error.textContent=e.message;error.hidden=false;}}};
-  form.addEventListener("input",update);kind.addEventListener("change",update);
+  dialog.innerHTML=`<h2 id="batch-discount-title">Cupão / Desconto</h2><p>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</p><form><label class="batch-discount-link-option"><input type="checkbox" name="linked" ${state.batch.discountLinked!==false?"checked":""}> Aplicar a todos os artigos (ligado)</label><p data-discount-total></p><label>Tipo de desconto<div class="select-control"><select name="kind"><option value="percent">Percentagem (%)</option><option value="amount">Valor (€)</option></select><span class="select-arrow" aria-hidden="true">▾</span></div></label><label><span data-discount-label>Percentagem (%)</span><input name="discount" type="number" inputmode="decimal" min="0" max="100" step="0.01" required autofocus></label><p class="discount-preview" aria-live="polite"></p><p class="discount-error" role="alert" hidden></p><div class="batch-actions"><button type="button" class="secondary">CANCELAR</button><button type="submit" class="primary">APLICAR DESCONTO</button></div></form>`;
+  const form=dialog.querySelector("form"),kind=form.elements.kind,input=form.elements.discount,linked=form.elements.linked,error=dialog.querySelector(".discount-error"),preview=dialog.querySelector(".discount-preview"),total=dialog.querySelector("[data-discount-total]");
+  const update=()=>{error.hidden=true;preview.textContent="";dialog.querySelector("[data-discount-label]").textContent=kind.value==="percent"?"Percentagem (%)":"Valor (€)";try{const items=batchDiscountItems(code,linked.checked),initial=batchDiscountPlan(items,"amount",0);total.textContent=`${linked.checked?"Total do lote":"Total deste artigo"}: ${formatMoneyValue(initial.total/100)}`;input.max=kind.value==="percent"?"100":String(initial.total/100);if(input.value!==""){const plan=batchDiscountPlan(items,kind.value,input.value);preview.textContent=`Desconto: ${formatMoneyValue(plan.discount/100)} · Total final: ${formatMoneyValue(plan.target/100)}`;}}catch(e){total.textContent="";error.textContent=e.message==="ENTRY_COST_REQUIRED"?"Preenche o preço dos artigos abrangidos pelo desconto.":e.message;error.hidden=false;}};
+  form.addEventListener("input",update);form.addEventListener("change",update);
   dialog.querySelector(".secondary").addEventListener("click",()=>dialog.close());
-  form.addEventListener("submit",event=>{event.preventDefault();if(!form.reportValidity())return;try{const plan=batchDiscountPlan(state.batch.items,kind.value,input.value);plan.costs.forEach((cost,index)=>state.batch.items[index].cost=String(cost));persistBatchDraft();dialog.close();render();}catch(e){error.textContent=e.message;error.hidden=false;}});
+  form.addEventListener("submit",event=>{event.preventDefault();if(!form.reportValidity())return;try{applyBatchDiscount(code,linked.checked,kind.value,input.value);state.batch.discountLinked=linked.checked;persistBatchDraft();dialog.close();render();}catch(e){error.textContent=e.message==="ENTRY_COST_REQUIRED"?"Preenche o preço dos artigos abrangidos pelo desconto.":e.message;error.hidden=false;}});
   dialog.addEventListener("close",()=>{dialog.remove();if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});},{once:true});
-  document.body.appendChild(dialog);dialog.showModal();input.focus();
+  document.body.appendChild(dialog);dialog.showModal();update();input.focus();
 }
-
 function batchConditionsMarkup() {
   const form = state.batch.form;
   const isExit = state.batch.movementType === "saida";
@@ -1096,10 +1106,9 @@ function batchConditionsMarkup() {
   return `<section class="workspace batch-page"><section class="batch-panel batch-conditions-panel">
     <div class="batch-heading"><p>CONCLUIR ${inventory ? "INVENTÁRIO" : movementLabel(state.batch.movementType).toLocaleUpperCase("pt-PT")}</p><h2>${batchUnitCount() > 1 ? "Condições comuns" : "Condições"}</h2><span>Serão aplicadas a ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"} deste ${batchSubjectLabel()}.</span></div>
     <div class="batch-condition-fields">${inventory || usesSourceStock(state.batch.movementType) ? "" : invoiceField(form, true)}${origin}${state.batch.movementType === "entrada" ? supplierDocumentField(form, true) : ""}<label><span>${memberSelected ? "Nome do Membro" : "Obs"} ${obsRequired ? "<b>*</b>" : ""}</span><input data-batch-field="obs" value="${escapeHtml(form.obs)}"${obsRequired ? " required" : ""} autocomplete="off"></label>${storage}
-    ${!isExit && state.batch.movementType !== "transferencia" && !inventory ? state.batch.items.map(item => `<label><span>${escapeHtml(item.code)} · ${escapeHtml(item.name)} — Valor unitário (€) <b>*</b></span><input type="number" min="0" step="any" inputmode="decimal" data-batch-cost-code="${escapeHtml(item.code)}" value="${escapeHtml(item.cost ?? "")}" required></label>`).join("") : ""}</div>
+    ${!isExit && state.batch.movementType !== "transferencia" && !inventory ? state.batch.items.map(batchEntryPriceMarkup).join("") : ""}</div>
     ${isExit ? `<div class="batch-exit-locations">${state.batch.items.map(item => `<section><strong>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</strong>${batchAllocationMarkup(item)}</section>`).join("")}</div>` : ""}
     <p class="batch-id">BatchID: ${escapeHtml(state.batch.id)}</p>
-    ${state.batch.movementType==="entrada"&&!inventory?`<div class="batch-actions batch-discount-actions"><button type="button" class="secondary" data-action="batch-discount" ${state.batch.saving?"disabled":""}>CUPÃO / DESCONTO</button></div>`:""}
     <div class="batch-actions"><button type="button" class="secondary" data-action="batch-review">VOLTAR</button><button type="button" class="primary" data-action="batch-submit"${state.batch.saving ? " disabled" : ""}>${state.batch.saving ? "A REGISTAR…" : `CONCLUIR ${batchSubjectLabel().toLocaleUpperCase("pt-PT")}`}</button></div>
   </section></section>`;
 }
@@ -3367,7 +3376,8 @@ document.addEventListener("click", async event => {
     renderPreservingContentScroll();
     return;
   }
-  if (action === "batch-discount") {openBatchDiscountDialog();return;}
+  if(action==="batch-discount-link"){if(state.batch.saving)return;state.batch.discountLinked=state.batch.discountLinked===false;persistBatchDraft();render();return;}
+  if (action === "batch-discount") {openBatchDiscountDialog(event.target.closest("[data-code]")?.dataset.code);return;}
   if (action === "batch-submit") {
     if (state.batch.saving) return;
     const requiredFields = [...document.querySelectorAll(".batch-condition-fields [required]")];

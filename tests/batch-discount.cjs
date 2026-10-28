@@ -20,3 +20,14 @@ assert.ok(run(`batchConditionsMarkup().includes('data-action="batch-discount"')`
 run(`state.batch.movementType='saida';state.batch.items[0].locations=[];state.batch.items[0].allocations={};`);
 assert.ok(!run(`batchConditionsMarkup().includes('data-action="batch-discount"')`));
 console.log('Batch discount tests passed: percentage, weighted amount, zero costs, limits and exact total rounding');
+run(`state.batch.movementType='entrada';state.batch.items=[{code:'A',name:'A',qty:2,cost:'100'},{code:'B',name:'B',qty:1,cost:'300'}];applyBatchDiscount('A',false,'percent',20);`);
+assert.equal(run('state.batch.items[0].cost'),'80');assert.equal(run('state.batch.items[1].cost'),'300');
+run(`state.batch.items[0].cost='100';applyBatchDiscount('A',true,'amount',200)`);
+assert.equal(run('state.batch.items[0].cost'),'60');assert.equal(run('state.batch.items[1].cost'),'180');
+run(`state.batch.items[0].cost='100';state.batch.items[1].cost='';applyBatchDiscount('A',false,'amount',20)`);
+assert.equal(run('state.batch.items[0].cost'),'90','Individual amount applies across the selected item quantity');
+assert.equal(run('state.batch.items[1].cost'),'','Individual discounts do not require unrelated prices');
+assert.throws(()=>run(`applyBatchDiscount('A',true,'percent',20)`));
+assert.equal(run('state.batch.items[0].cost'),'90','Invalid global input must not partially change costs');
+assert.equal(run(`(batchConditionsMarkup().match(/data-action="batch-discount"/g)||[]).length`),2);
+assert.ok(!run(`batchConditionsMarkup().includes('batch-discount-actions')`));
