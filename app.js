@@ -1073,11 +1073,14 @@ function applyBatchDiscount(code,linked,type,value) {
   const items=batchDiscountItems(code,linked),plan=batchDiscountPlan(items,type,value);
   plan.costs.forEach((cost,index)=>{const item=items[index];if(plan.discount>0&&item.entryOriginalCost===undefined)item.entryOriginalCost=entryCost(item.cost);item.cost=String(cost);});return plan;
 }
-function batchEntryPriceMarkup(item,index) {
-  const linked=state.batch.discountLinked!==false,e=escapeHtml;
-  return `<div class="batch-entry-price-field"><label for="batch-entry-cost-${index}"><span>${e(item.code)} · ${e(item.name)} — Valor unitário (€) <b>*</b></span></label><div class="batch-entry-price-control"><input id="batch-entry-cost-${index}" type="number" min="0" step="any" inputmode="decimal" data-batch-cost-code="${e(item.code)}" value="${e(item.cost??"")}" required><button type="button" class="batch-price-discount" data-action="batch-discount" data-code="${e(item.code)}" title="Cupão / Desconto" aria-label="Aplicar desconto a ${e(item.code)}"><span class="material-symbols-outlined" aria-hidden="true">sell</span></button><button type="button" class="batch-price-link" data-action="batch-discount-link" aria-pressed="${linked}" title="${linked?"Desconto ligado: todo o lote":"Desconto individual: apenas este artigo"}" aria-label="Ligar desconto a todos os artigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/>${linked?"":'<path d="m3 3 18 18"/>'}</svg></button></div>${item.entryOriginalCost!==undefined&&Number(item.entryOriginalCost)>Number(item.cost)?`<p class="batch-price-comparison"><span>Original: <s>${formatMoneyValue(Number(item.entryOriginalCost))}</s></span><strong>Com desconto: ${formatMoneyValue(Number(item.cost))}</strong></p>`:""}</div>`;
+function restoreBatchEntryPrice(code) {
+  const item=batchItemByCode(code);if(!item||item.entryOriginalCost===undefined)return;
+  item.cost=String(item.entryOriginalCost);delete item.entryOriginalCost;
 }
-function openBatchDiscountDialog(code=state.batch.items[0]?.code) {
+function batchEntryPriceMarkup(item,index) {
+  const linked=state.batch.discountLinked!==false,e=escapeHtml,discounted=item.entryOriginalCost!==undefined&&Number(item.entryOriginalCost)>Number(item.cost);
+  return `<div class="batch-entry-price-field"><label for="batch-entry-cost-${index}"><span>${e(item.code)} · ${e(item.name)} — Valor unitário (€) <b>*</b></span></label><div class="batch-entry-price-control${discounted?" has-discount":""}"><div class="batch-entry-price-values">${discounted?`<span class="batch-price-original">Original: <s>${formatMoneyValue(Number(item.entryOriginalCost))}</s></span>`:""}<div class="batch-price-final">${discounted?'<span>Com desconto:</span>':""}<input id="batch-entry-cost-${index}" type="number" min="0" step="any" inputmode="decimal" data-batch-cost-code="${e(item.code)}" value="${e(item.cost??"")}" aria-label="${discounted?"Preço com desconto":"Valor unitário"} de ${e(item.code)}" required></div></div><button type="button" class="batch-price-discount" data-action="batch-discount" data-code="${e(item.code)}" title="Cupão / Desconto" aria-label="Aplicar desconto a ${e(item.code)}"><span class="material-symbols-outlined" aria-hidden="true">sell</span></button><button type="button" class="batch-price-link" data-action="batch-discount-link" aria-pressed="${linked}" title="${linked?"Desconto ligado: todo o lote":"Desconto individual: apenas este artigo"}" aria-label="Ligar desconto a todos os artigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/>${linked?"":'<path d="m3 3 18 18"/>'}</svg></button>${discounted?`<button type="button" class="batch-price-reset" data-action="batch-discount-reset" data-code="${e(item.code)}" title="Remover desconto e repor preço original" aria-label="Repor preço original de ${e(item.code)}"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>`:""}</div></div>`;
+}function openBatchDiscountDialog(code=state.batch.items[0]?.code) {
   if(state.batch.saving||state.batch.movementType!=="entrada"||isInventoryMode()||document.querySelector(".batch-discount-dialog"))return;
   const item=batchItemByCode(code);if(!item)return;
   const previousFocus=document.activeElement,dialog=document.createElement("dialog");
@@ -3376,6 +3379,7 @@ document.addEventListener("click", async event => {
     renderPreservingContentScroll();
     return;
   }
+  if(action==="batch-discount-reset"){if(state.batch.saving)return;restoreBatchEntryPrice(event.target.closest("[data-code]")?.dataset.code);persistBatchDraft();render();return;}
   if(action==="batch-discount-link"){if(state.batch.saving)return;state.batch.discountLinked=state.batch.discountLinked===false;persistBatchDraft();render();return;}
   if (action === "batch-discount") {openBatchDiscountDialog(event.target.closest("[data-code]")?.dataset.code);return;}
   if (action === "batch-submit") {
@@ -3644,7 +3648,7 @@ document.addEventListener("submit", async event => {
 document.addEventListener("input", async event => {
   if (event.target.dataset?.batchCostCode) {
     const item = batchItemByCode(event.target.dataset.batchCostCode);
-    if (item) { item.cost = event.target.value; delete item.entryOriginalCost;event.target.closest(".batch-entry-price-field")?.querySelector(".batch-price-comparison")?.remove();persistBatchDraft(); }
+    if (item) { item.cost = event.target.value; delete item.entryOriginalCost;const control=event.target.closest(".batch-entry-price-control");control?.querySelector(".batch-price-original")?.remove();control?.querySelector(".batch-price-final>span")?.remove();control?.querySelector(".batch-price-reset")?.remove();control?.classList.remove("has-discount");persistBatchDraft(); }
     return;
   }
   if (state.customArticle && event.target.dataset?.customField) {

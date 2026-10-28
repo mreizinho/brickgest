@@ -35,8 +35,14 @@ run(`state.batch.items=[{code:'A',name:'Set A',qty:1,cost:'100'},{code:'B',name:
 assert.equal(run('state.batch.items[0].entryOriginalCost'),100);
 assert.equal(run('state.batch.items[1].entryOriginalCost'),undefined);
 assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('Original: <s>100,00')`));
-assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('Com desconto: 80,00')`));
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('Com desconto:')`));
 run(`applyBatchDiscount('A',false,'percent',10)`);
 assert.equal(run('state.batch.items[0].entryOriginalCost'),100,'Keep the original price across repeated discounts');
 assert.equal(run('state.batch.items[0].cost'),'72');
 assert.equal(run('JSON.parse(JSON.stringify(state.batch)).items[0].entryOriginalCost'),100);
+assert.ok(run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('data-action="batch-discount-reset"')`));
+run(`restoreBatchEntryPrice('A')`);
+assert.equal(run('state.batch.items[0].cost'),'100');
+assert.equal(run('state.batch.items[0].entryOriginalCost'),undefined);
+assert.equal(run('state.batch.items[1].cost'),'200','Reset must not change other article prices');
+assert.ok(!run(`batchEntryPriceMarkup(state.batch.items[0],0).includes('data-action="batch-discount-reset"')`));
