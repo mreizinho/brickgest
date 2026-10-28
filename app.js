@@ -3417,7 +3417,7 @@ document.addEventListener("click", async event => {
     return;
   }
   if(action==="batch-discount-reset"){if(state.batch.saving)return;const batch=state.batch,code=event.target.closest("[data-code]")?.dataset.code,scope=await chooseBatchDiscountResetScope(code);if(scope==="cancel"||state.batch!==batch||state.batch.saving)return;if(scope==="all")state.batch.items.forEach(item=>restoreBatchEntryPrice(item.code));else restoreBatchEntryPrice(code);persistBatchDraft();render();return;}
-  if(action==="batch-discount-link"){if(state.batch.saving)return;state.batch.discountLinked=state.batch.discountLinked===false;persistBatchDraft();render();return;}
+  if(action==="batch-discount-link"){if(state.batch.saving)return;state.batch.discountLinked=state.batch.discountLinked===false;persistBatchDraft();renderPreservingContentScroll();return;}
   if (action === "batch-discount") {openBatchDiscountDialog(event.target.closest("[data-code]")?.dataset.code);return;}
   if (action === "batch-submit") {
     if (state.batch.saving) return;
