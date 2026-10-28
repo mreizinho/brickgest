@@ -558,3 +558,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 @media(max-width:850px){.app-shell{height:var(--app-visible-height,100dvh)}.app-content{min-height:0;scroll-padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
 
 .batch-entry-price-control>.batch-price-link,.has-discount>.batch-price-link{border-radius:0}.batch-entry-price-control>.batch-price-discount{border-radius:0 4px 4px 0}
+
+.batch-entry-price-control>.batch-entry-price-values{display:grid;grid-template-columns:12ch;justify-content:start;align-items:center;font-size:16px;font-variant-numeric:tabular-nums;column-gap:8px}.batch-entry-price-control.has-discount>.batch-entry-price-values{grid-template-columns:12ch 1ch 12ch;column-gap:8px}.batch-entry-price-values .batch-price-final{min-width:0;width:100%;text-align:right}.batch-entry-price-control .batch-price-original{display:block;width:100%;text-align:right;font-variant-numeric:tabular-nums}.batch-entry-price-control .batch-price-separator{text-align:center}.batch-condition-fields .batch-entry-price-control .batch-price-final>input{width:100%;text-align:right;font-variant-numeric:tabular-nums}
