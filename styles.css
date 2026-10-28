@@ -564,3 +564,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-entry-price-values .batch-price-final{justify-content:flex-end}.batch-price-final>.batch-price-display{width:100%;text-align:right;font-variant-numeric:tabular-nums}
 
 .batch-entry-price-control.has-discount>.batch-entry-price-values{grid-template-columns:12ch 1ch var(--batch-original-price-width,8ch);column-gap:6px}
+
+.batch-discount-fields{grid-template-columns:minmax(0,1fr) minmax(100px,.72fr)}.batch-discount-fields .select-arrow{width:32px}.batch-discount-dialog .batch-discount-fields select{padding-left:10px;padding-right:38px}@media(max-width:450px){.batch-discount-fields{grid-template-columns:minmax(0,1fr) 104px;gap:10px}.batch-discount-fields>label{font-size:14px}.batch-discount-dialog .batch-discount-fields select{font-size:14px}.batch-discount-dialog .batch-discount-fields input{font-size:16px}}
