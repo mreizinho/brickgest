@@ -554,3 +554,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-condition-fields .batch-entry-price-control .batch-price-final>input{z-index:1}.batch-price-display{pointer-events:none}
 
 .batch-entry-price-control{position:relative;border-radius:4px}.batch-entry-price-control:focus-within::after{content:'';position:absolute;inset:0;z-index:3;border:1px solid #617f9f;border-radius:4px;box-shadow:0 0 0 3px rgba(97,127,159,.14);pointer-events:none}.batch-entry-price-values:focus-within{border-color:#cbd0d3;box-shadow:none}.batch-entry-price-control>button:focus-visible{outline:none}
+
+@media(max-width:850px){.app-shell{height:var(--app-visible-height,100dvh)}.app-content{min-height:0;scroll-padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}}

@@ -1272,6 +1272,16 @@ function updateMobileConcludeButton() {
   floating.style.top = `${header.getBoundingClientRect().bottom + 32}px`;
 }
 
+function updateMobileViewportHeight() {
+  const root=document.documentElement;
+  if(!root)return;
+  const viewport=window.visualViewport;
+  if(window.innerWidth>850||!viewport||Math.abs((viewport.scale||1)-1)>.05){root.style.removeProperty("--app-visible-height");return;}
+  root.style.setProperty("--app-visible-height",`${Math.round(viewport.height)}px`);
+}
+window.addEventListener("resize",updateMobileViewportHeight);
+window.visualViewport?.addEventListener("resize",updateMobileViewportHeight);
+updateMobileViewportHeight();
 window.addEventListener("resize", updateMobileConcludeButton);
 window.visualViewport?.addEventListener("resize",updateMobileConcludeButton);
 window.visualViewport?.addEventListener("scroll",updateMobileConcludeButton);
