@@ -607,3 +607,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .batch-price-discount img.discount-tag-icon{width:28px;height:28px;object-fit:contain}
 @media(max-width:850px){.batch-price-discount img.discount-tag-icon{width:25px;height:25px}}
+
+.batch-entry-price-control>.batch-price-discount{background:#eef0f2}
+.batch-entry-price-control.has-discount>.batch-price-discount{background:#ffd600}
