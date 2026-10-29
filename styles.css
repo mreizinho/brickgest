@@ -594,3 +594,8 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .batch-condition-fields{position:relative}
 .batch-discount-connectors{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;fill:none;stroke:#555657;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.batch-discount-fields>.batch-discount-value{display:flex;align-items:flex-end}
+.batch-discount-value-box{position:relative;display:block;width:100%;height:46px}
+.batch-discount-dialog .batch-discount-value-box>input{height:100%;padding-right:34px}
+.batch-discount-value-box>[data-discount-unit]{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#62686c;font-size:16px}
