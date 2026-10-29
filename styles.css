@@ -578,3 +578,16 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-entry-price-control .batch-price-separator{flex:none}
 }
 @media(max-width:850px){.batch-entry-price-values .batch-price-final{flex-basis:10ch}.batch-entry-price-control .batch-price-original{flex-basis:calc(var(--batch-original-price-width,8ch) + 1ch)}}
+
+@media(max-width:850px){
+.batch-entry-price-control .batch-price-display,.batch-entry-price-control .batch-price-original s{font-size:clamp(13px,3.6vw,16px)}
+}
+.batch-condition-fields .batch-entry-price-control{--batch-price-button-width:44px;grid-template-columns:var(--batch-price-button-width) minmax(0,1fr) var(--batch-price-button-width)}
+.batch-condition-fields .batch-entry-price-control.has-discount{grid-template-columns:var(--batch-price-button-width) minmax(0,1fr) var(--batch-price-button-width) var(--batch-price-button-width)}
+.batch-entry-price-control>.batch-price-link{grid-column:1;grid-row:1;border-left:1px solid #cbd0d3;border-radius:4px 0 0 4px}
+.batch-entry-price-control>.batch-entry-price-values{grid-column:2;grid-row:1;border-left:0;border-radius:0}
+.batch-entry-price-control>.batch-price-reset{grid-column:3;grid-row:1}
+.batch-entry-price-control>.batch-price-discount{grid-column:3;grid-row:1}
+.batch-entry-price-control.has-discount>.batch-price-discount{grid-column:4}
+@media(max-width:850px){.batch-condition-fields .batch-entry-price-control{--batch-price-button-width:36px}}
+@media(max-width:360px){.batch-condition-fields .batch-entry-price-control{--batch-price-button-width:34px}}
