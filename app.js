@@ -1164,7 +1164,29 @@ function render() {
   alignBatchPriceSeparators();
 }
 
+function drawBatchDiscountLinks() {
+  const fields = document.querySelector('.batch-condition-fields');
+  if (!fields) return;
+  fields.querySelector('.batch-discount-connectors')?.remove();
+  const buttons = [...fields.querySelectorAll('.batch-price-link[aria-pressed="true"]')];
+  if (buttons.length < 2) return;
+  const bounds = fields.getBoundingClientRect();
+  const points = buttons.map(button => {
+    const rect = button.getBoundingClientRect();
+    return {x:rect.left - bounds.left, y:rect.top + rect.height / 2 - bounds.top};
+  });
+  const spine = Math.min(...points.map(point => point.x)) - 10;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('batch-discount-connectors');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(svg.namespaceURI, 'path');
+  path.setAttribute('d', `M${spine} ${Math.min(...points.map(point => point.y))}V${Math.max(...points.map(point => point.y))} ` + points.map(point => `M${spine} ${point.y}H${point.x}`).join(' '));
+  svg.append(path);
+  fields.append(svg);
+}
+
 function alignBatchPriceSeparators() {
+  drawBatchDiscountLinks();
   document.querySelectorAll('.batch-entry-price-values').forEach(values => {
     const separator = values.querySelector('.batch-price-separator');
     if (!separator) return;
