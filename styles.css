@@ -612,3 +612,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-entry-price-control.has-discount>.batch-price-discount{background:#ffd600}
 
 @media(min-width:851px){.batch-condition-fields>.batch-entry-price-field{grid-column:1/-1}}
+
+.batch-entry-price-field>label{padding-left:44px}
+@media(max-width:850px){.batch-entry-price-field>label{padding-left:36px}}
+@media(max-width:360px){.batch-entry-price-field>label{padding-left:34px}}
