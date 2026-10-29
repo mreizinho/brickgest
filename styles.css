@@ -601,3 +601,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .batch-discount-value-box>[data-discount-unit]{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#62686c;font-size:16px}
 
 .batch-discount-dialog [data-discount-item]{font-weight:700}
+
+.batch-price-discount .discount-tag-icon{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:850px){.batch-price-discount .discount-tag-icon{width:21px;height:21px}}
