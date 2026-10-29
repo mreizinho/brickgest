@@ -1175,7 +1175,7 @@ function drawBatchDiscountLinks() {
     const rect = button.getBoundingClientRect();
     return {x:rect.left - bounds.left, y:rect.top + rect.height / 2 - bounds.top};
   });
-  const spine = Math.min(...points.map(point => point.x)) - 10;
+  const spine = Math.min(...points.map(point => point.x)) - 7;
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.classList.add('batch-discount-connectors');
   svg.setAttribute('aria-hidden', 'true');
