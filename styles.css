@@ -610,3 +610,5 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .batch-entry-price-control>.batch-price-discount{background:#eef0f2}
 .batch-entry-price-control.has-discount>.batch-price-discount{background:#ffd600}
+
+@media(min-width:851px){.batch-condition-fields>.batch-entry-price-field{grid-column:1/-1}}
