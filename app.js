@@ -2617,7 +2617,7 @@ function dismissScannerSuccessOverlay(resume = true) {
   if (resume) resumeScan?.();
 }
 
-function showScannerSuccessOverlay(resumeScan, warning = "") {
+function showScannerSuccessOverlay(resumeScan, warning = "", variant = warning ? "warning" : "success") {
   const overlay = document.querySelector(".camera-scan-success");
   if (!overlay) {
     resumeScan();
@@ -2625,10 +2625,11 @@ function showScannerSuccessOverlay(resumeScan, warning = "") {
   }
   if (scannerSuccessTimer) window.clearTimeout(scannerSuccessTimer);
   scannerSuccessResume = resumeScan;
-  overlay.classList.toggle("camera-scan-warning", Boolean(warning));
-  overlay.setAttribute("aria-label", warning ? `${warning} Tocar para continuar.` : "Leitura aceite. Tocar para continuar.");
+  overlay.classList.toggle("camera-scan-warning", variant === "warning");
+  overlay.classList.toggle("camera-scan-question", variant === "question");
+  overlay.setAttribute("aria-label", variant === "question" ? "Código não encontrado. Tocar para continuar." : warning ? `${warning} Tocar para continuar.` : "Leitura aceite. Tocar para continuar.");
   const icon = overlay.querySelector("span");
-  icon.innerHTML = warning ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 21h20L12 3Z" stroke-linejoin="round"/><path d="M12 9v5" stroke-linecap="round"/><circle cx="12" cy="17.5" r=".6" fill="currentColor" stroke="none"/></svg>' : "✓";
+  icon.innerHTML = variant === "warning" ? '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><path class="camera-warning-triangle" d="M12 3 2 21h20L12 3Z" stroke-linejoin="round"/><path class="camera-warning-mark" d="M12 9v5" stroke-linecap="round"/><circle class="camera-warning-mark" cx="12" cy="17.5" r=".6" stroke="none"/></svg>' : variant === "question" ? "?" : "✓";
   overlay.removeAttribute("hidden");
   scannerSuccessTimer = window.setTimeout(() => dismissScannerSuccessOverlay(), SCANNER_SUCCESS_DURATION_MS);
 }
@@ -3004,6 +3005,13 @@ async function openBarcodeScanner(addHistory = true) {
             }
             if (lastUnknownEan !== ean) {
               lastUnknownEan = ean;
+              if (isBatchMode()) {
+                updateScannerStatus(`EAN ${ean} não encontrado no catálogo. Continue a apontar para outro código.`);
+                showScannerSuccessOverlay(() => {
+                  if (state.scannerOpen && session === barcodeSession) barcodeScanTimer = window.setTimeout(scanFrame, 140);
+                }, "", "question");
+                return;
+              }
               if (offerCustomArticle(ean)) return;
               updateScannerStatus(`EAN ${ean} não encontrado no catálogo. Continue a apontar para outro código.`);
             }
