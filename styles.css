@@ -382,7 +382,7 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 .transfer-selection-page .transfer-selection-title{padding-right:64px}
 @media(max-width:850px){.transfer-selection-page .transfer-barcode-button{top:16px;right:16px}}
 
-.camera-scan-warning>span{border-color:#e8a900;background:#fff}.camera-scan-warning>span svg{display:block;width:62px;height:62px;transform:translateY(-4px)}.camera-warning-triangle{stroke:#e32636}.camera-warning-mark{stroke:#111;fill:#111}.camera-scan-question>span{color:#1684b8;border-color:#1684b8;background:#fff}
+.camera-scan-warning>span{color:#b77500;border-color:#e8a900;background:#fff7dc}.camera-scan-warning>span svg{display:block;width:62px;height:62px;transform:translateY(-4px)}
 
 .consultation-item-summary{min-width:0;gap:7px}
 .consultation-item-summary>b{white-space:nowrap}
