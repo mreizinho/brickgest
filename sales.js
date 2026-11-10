@@ -288,15 +288,17 @@ function validateSaleItems(items) {
 }
 function buildSaleRows(stockRows,id,timestamp) {
   const s=salesState, movements=[], lines=[];
+  if (!["Factura","Recibo"].includes(s.type)) throw new Error("Seleciona o documento.");
+  const stockGroup=s.type==="Factura"?"Com factura":"Sem factura";
   stockRows=stockRows.map(row=>row.slice());
   validateSaleItems(s.items);
   for (const item of s.items) {
     const allocations=Object.entries(item.allocations).filter(([,q])=>Number(q)>0).map(([storage,q])=>({storage,quantity:Number(q)}));
-    const stock=locationStockFromRows(stockRows,item.code);
-    for (const a of allocations) if (a.quantity>(stock.find(l=>l.storage===a.storage)?.stock||0)) throw new Error(`O stock de ${item.code} em ${a.storage} mudou. Revê as quantidades.`);
+    const stock=locationStockFromRows(stockRows,item.code,stockGroup);
+    for (const a of allocations) if (a.quantity>(stock.find(l=>l.storage===a.storage)?.stock||0)) throw new Error(`Stock ${stockGroup} insuficiente para ${item.code} em ${a.storage}. Revê as quantidades ou o documento.`);
     const lineId=createMovementId(), qty=allocations.reduce((a,b)=>a+b.quantity,0);
     lines.push([lineId,id,item.code,item.name,item.ean,qty,Number(item.price),Math.round(Number(item.price)*100)*qty/100]);
-    for (const a of splitExitAllocations(stockRows,item.code,allocations)) {
+    for (const a of splitExitAllocations(stockRows,item.code,allocations,stockGroup)) {
       const movement=[createMovementId(),timestamp,item.ean,item.code,item.name,item.year,item.theme,item.subTheme||"","Venda",item.imageUrl,a.storage,-a.quantity,state.userEmail,item.rrp||"","","",a.group==="Com factura"?a.cost??"":"",a.group==="Sem factura"?a.cost??"":"",a.group,"",id,lineId];
       movements.push(movement);stockRows.push(movement.slice(3,19));
     }
