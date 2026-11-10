@@ -14,7 +14,7 @@ assert.equal(run(`inventoryCosts([...rows,...result.movements.map(r=>r.slice(3,1
 assert.equal(run(`inventoryCosts([...rows,...result.movements.map(r=>r.slice(3,19))],${JSON.stringify(type==='Factura'?'Sem factura':'Com factura')}).get('100').quantity`),type==='Factura'?4:2);
 }
 run(`salesState.type='Factura';salesState.items[0].allocations={A:3}`);
-assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Com factura/,'No fallback to receipt stock');
+assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][11]`),-3,'Fiscal balance must not block available physical stock');
 run(`salesState.type='Recibo';salesState.items[0].allocations={A:4}`);
 assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][11]`),-4,'Physical locations are independent of fiscal groups');
 run(`salesState.type='Factura';salesState.items[0].allocations={B:1}`);
@@ -23,6 +23,15 @@ assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][10]`),'B');
 run(`salesState.items[0].allocations={B:2}`);
 assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/stock/i,'Physical location capacity is still enforced');
 run(`salesState.type='Recibo';salesState.items=[{code:'100',name:'Set',price:'50',allocations:{A:3}},{code:'100',name:'Set',price:'60',allocations:{A:2}}]`);
-assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Sem factura/,'Repeated sale lines share the same available balance');
+assert.equal(run(`buildSaleRows(rows,'sale','date').movements.reduce((sum,r)=>sum+r[11],0)`),-5,'Repeated lines may consume all physical stock regardless of fiscal balance');
+run(`salesState.items[1].allocations.A=3`);
+assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/stock/i,'Repeated lines cannot oversell physical stock');
 assert.equal(run(`rows[1][8]`),3,'Planning does not mutate source stock');
 console.log('Sales document stock tests passed: fiscal groups, costs, remaining balances, no fallback, locations, repeated lines and source preservation.');
+
+for(const type of ['Factura','Recibo']){
+run(`salesState.type=${JSON.stringify(type)};salesState.items=[{code:'10300',name:'Back to the Future',price:'200',allocations:{Feira:3}}];var physicalOnly=[stock('10300','Feira',3,${JSON.stringify(type==='Factura'?'Sem factura':'Com factura')},100)];var physicalSale=buildSaleRows(physicalOnly,'10300-sale','date');`);
+assert.equal(run('physicalSale.movements[0][11]'),-3,'10300 can sell three physically available units');
+assert.equal(run('physicalSale.movements[0][18]'),type==='Factura'?'Com factura':'Sem factura');
+assert.equal(run(`locationStockFromRows([...physicalOnly,...physicalSale.movements.map(r=>r.slice(3,19))],'10300').length`),0);
+}

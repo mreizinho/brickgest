@@ -2249,6 +2249,8 @@ function splitExitAllocations(rows, code, allocations, requiredGroup = null) {
     const availablePhysical = physicalStock.get(allocation.storage) || 0;
     if (!Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0 || allocation.quantity > availablePhysical) throw new Error("LOCATION_STOCK_CHANGED");
     physicalStock.set(allocation.storage, availablePhysical - allocation.quantity);
+    // Sales use physical availability; the document labels the outgoing fiscal group.
+    if (requiredGroup) return [{...allocation, group:requiredGroup, cost:costs[0]}];
     let remaining = allocation.quantity;
     const result = [];
     groups.forEach((group, index) => {

@@ -296,9 +296,6 @@ function buildSaleRows(stockRows,id,timestamp) {
     const allocations=Object.entries(item.allocations).filter(([,q])=>Number(q)>0).map(([storage,q])=>({storage,quantity:Number(q)}));
     const stock=locationStockFromRows(stockRows,item.code);
     for (const a of allocations) if (a.quantity>(stock.find(l=>l.storage===a.storage)?.stock||0)) throw new Error(`O stock de ${item.code} em ${a.storage} mudou. Revê as quantidades.`);
-    const requested=allocations.reduce((sum,a)=>sum+a.quantity,0);
-    const groupStock=inventoryCosts(stockRows,stockGroup).get(String(item.code))?.quantity||0;
-    if (requested>groupStock) throw new Error(`Stock ${stockGroup} insuficiente para ${item.code}. Revê as quantidades ou o documento.`);
     const lineId=createMovementId(), qty=allocations.reduce((a,b)=>a+b.quantity,0);
     lines.push([lineId,id,item.code,item.name,item.ean,qty,Number(item.price),Math.round(Number(item.price)*100)*qty/100]);
     for (const a of splitExitAllocations(stockRows,item.code,allocations,stockGroup)) {
