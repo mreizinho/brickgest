@@ -1043,10 +1043,10 @@ function batchReviewMarkup() {
   const label = batchSubjectLabel();
   return `<section class="workspace batch-page"><section class="batch-panel batch-review-panel">
     <div class="batch-heading"><p>${state.batch.movementType === "transferencia" ? batchMovementLabel().toLocaleUpperCase("pt-PT") : "LEITURA EM PAUSA"}</p><h2>Rever ${state.batch.movementType === "transferencia" ? (batchUnitCount() > 1 ? "sets selecionados" : "set selecionado") : label}</h2><span>${state.batch.items.length} ${state.batch.items.length === 1 ? "referência" : "referências"} · ${batchUnitCount()} ${batchUnitCount() === 1 ? "unidade" : "unidades"}</span></div>
-    <div class="batch-review-list">${[...state.batch.items].reverse().map(item => `<article class="batch-item">
-      <div class="batch-item-main"><button type="button" class="batch-remove-item" data-action="batch-item-remove" data-batch-code="${escapeHtml(item.code)}" aria-label="Remover ${escapeHtml(item.code)}">×</button>${item.imageUrl ? `<button type="button" class="batch-item-image batch-image-button" data-action="batch-image" data-batch-code="${escapeHtml(item.code)}" aria-label="Ver imagem de ${escapeHtml(item.code)}"><img src="${escapeHtml(item.imageUrl)}" alt=""></button>` : `<span class="batch-item-image">#</span>`}<span><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme || "")} ${item.year ? `· ${escapeHtml(item.year)}` : ""}</small>${usesSourceStock(state.batch.movementType) ? `<em>Stock disponível: ${item.locations.reduce((total, location) => total + location.stock, 0)}</em>` : ""}</span><div class="batch-inline-qty"><strong>${item.qty}</strong><div><button type="button" data-action="batch-item-increase" data-batch-code="${escapeHtml(item.code)}">▴</button><button type="button" data-action="batch-item-decrease" data-batch-code="${escapeHtml(item.code)}">▾</button></div></div></div>
+    <div class="batch-review-list">${[...state.batch.items].reverse().map(item => `<article class="batch-item batch-swipe-item" data-batch-code="${escapeHtml(item.code)}"><div class="batch-swipe-delete" aria-hidden="true"><svg class="batch-trash-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="batch-trash-body" d="M6 7h12v12c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V7zm2 2v10h8V9H8z"/><path class="batch-trash-lid" d="m15.5 4-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg></div><div class="batch-swipe-content">
+      <div class="batch-item-main"><button type="button" class="batch-desktop-delete" data-action="batch-item-remove" data-batch-code="${escapeHtml(item.code)}" aria-label="Apagar ${escapeHtml(item.code)}"><svg class="batch-trash-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="batch-trash-body" d="M6 7h12v12c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V7zm2 2v10h8V9H8z"/><path class="batch-trash-lid" d="m15.5 4-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg></button>${item.imageUrl ? `<button type="button" class="batch-item-image batch-image-button" data-action="batch-image" data-batch-code="${escapeHtml(item.code)}" aria-label="Ver imagem de ${escapeHtml(item.code)}"><img src="${escapeHtml(item.imageUrl)}" alt=""></button>` : `<span class="batch-item-image">#</span>`}<span><b>${escapeHtml(item.code)} · ${escapeHtml(item.name)}</b><small>${escapeHtml(item.theme || "")} ${item.year ? `· ${escapeHtml(item.year)}` : ""}</small>${usesSourceStock(state.batch.movementType) ? `<em>Stock disponível: ${item.locations.reduce((total, location) => total + location.stock, 0)}</em>` : ""}</span><div class="batch-inline-qty"><strong>${item.qty}</strong><div><button type="button" data-action="batch-item-increase" data-batch-code="${escapeHtml(item.code)}">▴</button><button type="button" data-action="batch-item-decrease" data-batch-code="${escapeHtml(item.code)}">▾</button></div></div></div>
       ${batchAllocationMarkup(item)}
-    </article>`).join("")}</div>
+    </div></article>`).join("")}</div>
     <div class="batch-actions${state.batch.movementType === "transferencia" ? " transfer-review-actions" : ""}">${state.batch.movementType === "transferencia" ? "" : `<button type="button" class="secondary" data-action="batch-resume">${state.batch.movementType === "transferencia" ? "SELECIONAR SETS" : "RETOMAR"}</button><button type="button" class="secondary batch-delete-action" data-action="batch-cancel">APAGAR</button>`}<button type="button" class="primary" data-action="batch-conditions">CONCLUIR</button></div>
   </section></section>`;
 }
@@ -3045,7 +3045,100 @@ async function openBarcodeScanner(addHistory = true) {
   }
 }
 
+let batchRowSwipeGesture = null;
+
+function resetBatchRowSwipe(row) {
+  const content = row?.querySelector(".batch-swipe-content");
+  if (!content) return;
+  row.classList.remove("batch-swipe-ready", "batch-swipe-confirmed");
+  content.classList.add("batch-swipe-animating");
+  content.style.transform = "translate3d(0,0,0)";
+  window.setTimeout(() => {
+    content.classList.remove("batch-swipe-animating");
+    content.style.removeProperty("transform");
+  }, 240);
+}
+
+async function removeBatchRowAfterSwipe(row) {
+  const batch = state.batch;
+  if (batch.saving || row?.dataset.removing) return;
+  const code = row?.dataset.batchCode;
+  const item = batchItemByCode(code);
+  if (!item) {
+    resetBatchRowSwipe(row);
+    return;
+  }
+  row.dataset.removing = "true";
+  const confirmed = await confirmRemoval(`Apagar ${item.code} · ${item.name} do ${batchSubjectLabel()}?`);
+  if (!confirmed || state.batch !== batch || batch.saving) {
+    delete row.dataset.removing;
+    resetBatchRowSwipe(row);
+    return;
+  }
+  row.classList.add("batch-swipe-confirmed");
+  window.setTimeout(() => row.classList.add("batch-swipe-removing"), 420);
+  window.setTimeout(() => {
+    if (state.batch !== batch || batch.saving) return;
+    state.batch.items = state.batch.items.filter(entry => String(entry.code) !== String(code));
+    if (!state.batch.items.length) state.batch.phase = "scan";
+    persistBatchDraft();
+    if (state.batch.phase === "review") renderPreservingContentScroll();
+    else render();
+  }, 620);
+}
+
 document.addEventListener("touchstart", event => {
+  const row = event.target.closest?.(".batch-swipe-item");
+  if (!row || window.innerWidth > 850 || state.batch.saving || row.dataset.removing || event.touches.length !== 1 || event.target.closest("button,input,select,textarea")) {
+    batchRowSwipeGesture = null;
+    return;
+  }
+  const touch = event.touches[0];
+  batchRowSwipeGesture = { row, content: row.querySelector(".batch-swipe-content"), x: touch.clientX, y: touch.clientY, horizontal: false, cancelled: false };
+}, { passive: true });
+
+document.addEventListener("touchmove", event => {
+  const gesture = batchRowSwipeGesture;
+  if (!gesture || event.touches.length !== 1) return;
+  const touch = event.touches[0];
+  const deltaX = touch.clientX - gesture.x;
+  const deltaY = touch.clientY - gesture.y;
+  if (!gesture.horizontal && Math.abs(deltaY) > 10 && Math.abs(deltaY) > Math.abs(deltaX)) gesture.cancelled = true;
+  if (!gesture.cancelled && Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) gesture.horizontal = true;
+  if (!gesture.horizontal) return;
+  event.preventDefault();
+  mobileSwipeGesture = null;
+  const offset = Math.max(-112, Math.min(0, deltaX));
+  gesture.row.classList.toggle("batch-swipe-ready", offset <= -68);
+  gesture.content.style.transform = "translate3d(" + offset + "px,0,0)";
+}, { passive: false });
+
+document.addEventListener("touchend", event => {
+  const gesture = batchRowSwipeGesture;
+  batchRowSwipeGesture = null;
+  const touch = event.changedTouches[0];
+  if (!gesture || !gesture.horizontal || gesture.cancelled || !touch) return;
+  event.preventDefault();
+  const deltaX = touch.clientX - gesture.x;
+  if (deltaX <= -68) {
+    gesture.row.classList.add("batch-swipe-ready");
+    gesture.content.classList.add("batch-swipe-animating");
+    gesture.content.style.transform = "translate3d(-96px,0,0)";
+    window.setTimeout(() => removeBatchRowAfterSwipe(gesture.row), 180);
+  } else {
+    resetBatchRowSwipe(gesture.row);
+  }
+}, { passive: false });
+
+document.addEventListener("touchcancel", () => {
+  const gesture = batchRowSwipeGesture;
+  batchRowSwipeGesture = null;
+  if (gesture) resetBatchRowSwipe(gesture.row);
+}, { passive: true });
+
+
+document.addEventListener("touchstart", event => {
+  if (event.target.closest?.(".batch-swipe-item")) { mobileSwipeGesture = null; return; }
   if (event.touches.length !== 1 || !canStartMobileTabSwipe(event)) {
     mobileSwipeGesture = null;
     return;
@@ -3423,14 +3516,7 @@ document.addEventListener("click", async event => {
     return;
   }
   if (action === "batch-item-remove") {
-    const code = event.target.closest("[data-batch-code]")?.dataset.batchCode;
-    const item = batchItemByCode(code);
-    if (!item || !await confirmRemoval(`Apagar ${item.code} · ${item.name} do ${batchSubjectLabel()}?`)) return;
-    state.batch.items = state.batch.items.filter(item => String(item.code) !== String(code));
-    if (!state.batch.items.length) state.batch.phase = "scan";
-    persistBatchDraft();
-    if (state.batch.phase === "review") renderPreservingContentScroll();
-    else render();
+    await removeBatchRowAfterSwipe(event.target.closest(".batch-swipe-item"));
     return;
   }
   if (action.startsWith("batch-allocation-")) {
