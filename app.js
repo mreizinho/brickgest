@@ -2244,7 +2244,7 @@ function splitExitAllocations(rows, code, allocations, requiredGroup = null) {
   const balances = groups.map(group => inventoryCosts(rows, group).get(String(code)));
   const stocks = balances.map(balance => Math.max(0, balance?.quantity || 0));
   const costs = balances.map(balance => balance?.cost ?? "");
-  const physicalStock = new Map(locationStockFromRows(rows, code, requiredGroup).map(location => [location.storage, location.stock]));
+  const physicalStock = new Map(locationStockFromRows(rows, code).map(location => [location.storage, location.stock]));
   return allocations.flatMap(allocation => {
     const availablePhysical = physicalStock.get(allocation.storage) || 0;
     if (!Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0 || allocation.quantity > availablePhysical) throw new Error("LOCATION_STOCK_CHANGED");

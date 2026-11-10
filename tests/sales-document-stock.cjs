@@ -16,10 +16,13 @@ assert.equal(run(`inventoryCosts([...rows,...result.movements.map(r=>r.slice(3,1
 run(`salesState.type='Factura';salesState.items[0].allocations={A:3}`);
 assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Com factura/,'No fallback to receipt stock');
 run(`salesState.type='Recibo';salesState.items[0].allocations={A:4}`);
-assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Sem factura/,'No fallback to invoice stock or other locations');
+assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][11]`),-4,'Physical locations are independent of fiscal groups');
 run(`salesState.type='Factura';salesState.items[0].allocations={B:1}`);
-assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Com factura/,'Group must be available at the chosen location');
-run(`salesState.type='Recibo';salesState.items=[{code:'100',name:'Set',price:'50',allocations:{A:2}},{code:'100',name:'Set',price:'60',allocations:{A:2}}]`);
+assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][18]`),'Com factura','Invoice can use physical stock in B even though its incoming row was without invoice');
+assert.equal(run(`buildSaleRows(rows,'sale','date').movements[0][10]`),'B');
+run(`salesState.items[0].allocations={B:2}`);
+assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/stock/i,'Physical location capacity is still enforced');
+run(`salesState.type='Recibo';salesState.items=[{code:'100',name:'Set',price:'50',allocations:{A:3}},{code:'100',name:'Set',price:'60',allocations:{A:2}}]`);
 assert.throws(()=>run(`buildSaleRows(rows,'sale','date')`),/Sem factura/,'Repeated sale lines share the same available balance');
 assert.equal(run(`rows[1][8]`),3,'Planning does not mutate source stock');
 console.log('Sales document stock tests passed: fiscal groups, costs, remaining balances, no fallback, locations, repeated lines and source preservation.');
