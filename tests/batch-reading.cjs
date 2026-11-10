@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const context = vm.createContext({console,document:{addEventListener(){},querySelector(){return null}},window:{addEventListener(){}}});
+const context = vm.createContext({console,document:{addEventListener(){},querySelector(){return null},querySelectorAll(){return []}},window:{addEventListener(){}}});
 const source = fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8').replace(/writeAppHistory\("home", true\);\s*restoreSession\(\);\s*$/, '');
 vm.runInContext(source,context);
 const run = code => vm.runInContext(code,context);
@@ -57,14 +57,16 @@ run(`const originalRender=render;render=()=>{};persistBatchDraft=()=>{};showMove
  assert.ok(run(`batchScannerStockWarning.includes('1 un.')`));
  assert.equal(run(`batchUnitCount()`),1);
  run(`const overlayIcon={innerHTML:''};let warningClass=false;let overlayLabel='';
- const overlay={classList:{toggle(name,value){warningClass=value}},setAttribute(name,value){overlayLabel=value},querySelector(){return overlayIcon},removeAttribute(){}};
+ const overlay={classList:{toggle(name,value){if(name === "camera-scan-warning") warningClass=value}},setAttribute(name,value){overlayLabel=value},querySelector(){return overlayIcon},removeAttribute(){}};
  document.querySelector=()=>overlay;window.setTimeout=()=>1;window.clearTimeout=()=>{};
  showScannerSuccessOverlay(()=>{},'No stock');`);
  assert.equal(run('warningClass'),true);
- assert.ok(run('overlayIcon.innerHTML.includes("<svg")'));
+ assert.equal(run('overlayIcon.innerHTML'), "!");
  run(`showScannerSuccessOverlay(()=>{})`);
  assert.equal(run('warningClass'),false);
- assert.equal(run('overlayIcon.innerHTML'),String.fromCodePoint(0x2713));
+ assert.ok(run('overlayIcon.innerHTML.includes("M-25 4 -8 25 28-32")'));
+ run(`showScannerSuccessOverlay(()=>{},"Unknown EAN","question")`);
+ assert.equal(run('overlayIcon.innerHTML'), "?");
  run(`state.scannerOpen=true;state.mode='lote';batchMarkup=()=>'<p>Updated count</p>';headerMarkup=()=>'';
  updateLotMobileHeaderSummary=()=>{};renderBatchKeypadWindow=()=>{};
  const liveVideo={srcObject:'live-stream'};const content={innerHTML:''};
