@@ -3060,6 +3060,49 @@ async function openBarcodeScanner(addHistory = true) {
 
 let batchRowSwipeGesture = null;
 
+function showBatchConfirm({ title = "Confirmar ação", message, confirmLabel = "CONFIRMAR", cancelLabel = "CANCELAR", danger = false } = {}) {
+  const previousFocus = document.activeElement;
+  return new Promise(resolve => {
+    let settled = false;
+    const overlay = document.createElement("div");
+    overlay.className = "batch-confirm-overlay";
+    overlay.innerHTML = '<section class="batch-confirm-dialog app-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="batch-confirm-title" aria-describedby="batch-confirm-message"><div class="batch-confirm-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5M12 17.5v.5"/></svg></div><h2 id="batch-confirm-title"></h2><p id="batch-confirm-message"></p><div class="batch-confirm-actions"><button type="button" class="batch-confirm-cancel"></button><button type="button" class="batch-confirm-accept"></button></div></section>';
+    const dialog = overlay.querySelector(".batch-confirm-dialog");
+    const cancel = overlay.querySelector(".batch-confirm-cancel");
+    const accept = overlay.querySelector(".batch-confirm-accept");
+    overlay.querySelector("#batch-confirm-title").textContent = title;
+    overlay.querySelector("#batch-confirm-message").textContent = message || "";
+    cancel.textContent = cancelLabel;
+    accept.textContent = confirmLabel;
+    accept.classList.toggle("danger", danger);
+    const finish = result => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener("keydown", onKeyDown);
+      overlay.classList.remove("open");
+      window.setTimeout(() => {overlay.remove();if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});}, 180);
+      resolve(result);
+    };
+    const onKeyDown = event => {
+      if (event.key === "Escape") {event.preventDefault();finish(false);}
+      if (event.key === "Tab") {
+        const controls = [cancel, accept];
+        const index = controls.indexOf(document.activeElement);
+        if (event.shiftKey && index <= 0) { event.preventDefault(); accept.focus(); }
+        else if (!event.shiftKey && index === controls.length - 1) { event.preventDefault(); cancel.focus(); }
+      }
+    };
+    cancel.addEventListener("click", () => finish(false), { once: true });
+    accept.addEventListener("click", () => finish(true), { once: true });
+    overlay.addEventListener("click", event => { if (event.target === overlay) finish(false); });
+    document.addEventListener("keydown", onKeyDown);
+    document.body.appendChild(overlay);
+    window.requestAnimationFrame(() => overlay.classList.add("open"));
+    cancel.focus();
+  });
+}
+
+
 function resetBatchRowSwipe(row) {
   const content = row?.querySelector(".batch-swipe-content");
   if (!content) return;
@@ -3082,7 +3125,7 @@ async function removeBatchRowAfterSwipe(row) {
     return;
   }
   row.dataset.removing = "true";
-  const confirmed = await confirmRemoval(`Apagar ${item.code} · ${item.name} do ${batchSubjectLabel()}?`);
+  const confirmed = await showBatchConfirm({title:"Apagar referência?",message:`Apagar ${item.code} · ${item.name} do ${batchSubjectLabel()}?`,confirmLabel:"APAGAR",danger:true});
   if (!confirmed || state.batch !== batch || batch.saving) {
     delete row.dataset.removing;
     resetBatchRowSwipe(row);

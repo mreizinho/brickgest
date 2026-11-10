@@ -690,3 +690,31 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
 
 .consultation-results-heading{flex-wrap:wrap;gap:12px}.consultation-sort{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px}.consultation-sort>.select-control{height:40px;min-width:220px}.consultation-sort select{height:40px;width:100%;padding:0 42px 0 10px;border:1px solid #cbd0d3;border-radius:4px;background:#fff;color:#333536;font:inherit;appearance:none}.consultation-sort .select-arrow{width:32px}
 @media(max-width:520px){.consultation-sort{margin-left:0;margin-top:8px;width:100%;justify-content:space-between}.consultation-sort>.select-control{min-width:0;flex:1}.consultation-sort select{font-size:13px}}
+
+/* Application-owned confirmation dialogs replace browser-native prompts. */
+.batch-confirm-overlay{position:fixed;z-index:500;inset:0;display:grid;place-items:center;padding:20px;background:rgba(18,21,23,.58);opacity:0;transition:opacity .18s ease}
+.batch-confirm-overlay.open{opacity:1}
+.batch-confirm-dialog.app-confirm-dialog{width:min(440px,100%);padding:28px;border:1px solid #d9dddf;border-radius:18px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;transform:translateY(12px) scale(.98);transition:transform .18s ease}
+.batch-confirm-overlay.open .batch-confirm-dialog.app-confirm-dialog{transform:translateY(0) scale(1)}
+.batch-confirm-icon{width:54px;height:54px;display:grid;place-items:center;margin:0 auto 16px;border-radius:50%;background:#fff0d0;color:#a66b00}
+.batch-confirm-icon svg{width:30px;height:30px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.batch-confirm-dialog.app-confirm-dialog h2{margin:0;color:#292c2e;font-size:24px;line-height:1.2}
+.batch-confirm-dialog.app-confirm-dialog p{margin:12px 0 24px;color:#686e72;font-size:15px;line-height:1.5}
+.batch-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.batch-confirm-actions button{min-height:54px;padding:12px;border:0;border-radius:14px;box-shadow:0 5px 0 #d0d2d3;font-size:14px;font-weight:800;letter-spacing:.7px;cursor:pointer}
+.batch-confirm-actions button:active{transform:translateY(3px);box-shadow:0 2px 0 #d0d2d3}
+.batch-confirm-cancel{background:#8b9093;color:#fff}
+.batch-confirm-accept{background:#ffd600;color:#171717}
+.batch-confirm-accept.danger{background:#a65a55;color:#fff}
+.batch-confirm-actions button:focus-visible{outline:3px solid rgba(25,51,74,.3);outline-offset:3px}
+@media(max-width:520px){
+  .batch-confirm-overlay{align-items:end;padding:14px}
+  .batch-confirm-dialog.app-confirm-dialog{padding:24px 20px 22px;border-radius:18px}
+  .batch-confirm-dialog.app-confirm-dialog h2{font-size:21px}
+  .batch-confirm-actions{grid-template-columns:1fr}
+  .batch-confirm-accept{grid-row:1}
+}
+@media(prefers-reduced-motion:reduce){
+  .batch-confirm-overlay,.batch-confirm-dialog.app-confirm-dialog{transition:none}
+}
+.batch-confirm-overlay .batch-confirm-dialog{margin:0}
