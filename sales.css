@@ -79,3 +79,5 @@
 .sales-page .batch-actions>[data-sale-action="print"],.sales-page .batch-actions>[data-sale-action="finish"]{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-left:22px;padding-right:22px;text-align:left}
 
 @media(min-width:851px){.sales-page .batch-actions:has(>[data-sale-action="finish"]){grid-template-columns:repeat(2,minmax(0,1fr))}.sales-page .batch-actions:has(>[data-sale-action="finish"])>button{grid-column:auto}}
+
+.sales-page .batch-actions>[data-sale-action="print"]{background:#075f8e;color:#fff}
