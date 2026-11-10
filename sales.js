@@ -166,14 +166,23 @@ async function addSaleCode(rawCode, fromScanner = false) {
   const s=salesState;
   if(s.showMenu || s.confirmNew || s.busy || s.pending || s.uncertain || s.phase!=="scan")return;
   const code=String(rawCode||"").trim();
+  if(!code)return;
   state.query="";
   await salesWork(async()=>{
     const found=findSet(code);
     if(!found)throw new Error("Artigo não encontrado. Usa o EAN ou código do catálogo.");
     const stockRows=await loadMovementStockRows();
     if(state.mode!=="vendas")return;
-    const locations=locationStockFromRows(stockRows,found.code).map(loc=>({...loc,stock:loc.stock-s.items.filter(i=>i.code===found.code).reduce((sum,i)=>sum+Number(i.allocations[loc.storage]||0),0)})).filter(loc=>loc.stock>0);
-    if(!locations.length)throw new Error("Não há mais stock disponível deste artigo para adicionar à venda.");
+    const physicalLocations=locationStockFromRows(stockRows,found.code);
+    const sameArticle=item=>String(item.code).trim()===String(found.code).trim();
+    // Refresh earlier lines too: stock and locations can change while a sale is open.
+    for(const item of s.items.filter(sameArticle))item.locations=physicalLocations.map(location=>({...location}));
+    const reserved=s.items.filter(sameArticle);
+    const locations=physicalLocations.map(loc=>({...loc,stock:loc.stock-reserved.reduce((sum,item)=>sum+Number(item.allocations[loc.storage]||0),0)})).filter(loc=>loc.stock>0);
+    if(!locations.length){
+      const total=physicalLocations.reduce((sum,loc)=>sum+loc.stock,0),allocated=reserved.reduce((sum,item)=>sum+Object.values(item.allocations).reduce((n,q)=>n+Number(q||0),0),0);
+      throw new Error(total>0 ? `Este artigo tem ${total} unidade(s) em stock físico e ${allocated} já incluída(s) nesta venda. Revê as quantidades para continuar.` : "Este artigo não tem stock físico disponível. Podes rever ou concluir os restantes artigos da venda.");
+    }
     s.pending={resumeScanner:fromScanner,item:{...found,locations,allocations:Object.fromEntries(locations.map((loc,i)=>[loc.storage,i===0?1:0])),price:""}};
   });
   document.querySelector("#sale-pending-price")?.focus();
@@ -412,10 +421,10 @@ document.addEventListener("click",async event=>{
   if(action==="resume"||action==="continue-draft"){resumeSaleDraft();return;}
   if(action==="restart-draft"){startNewSale();return;}
   if(action==="new"){requestNewSale();return;}
-  if(action==="edit" || action==="review"){s.phase="review";persistSaleDraft();render();}
+  if(action==="edit" || action==="review"){s.error="";s.phase="review";persistSaleDraft();render();}
   if(action==="select-document" && s.phase==="document" && ["Factura","Recibo"].includes(button.dataset.document)){s.type=button.dataset.document;persistSaleDraft();render();document.querySelector(`[data-sale-action="select-document"][data-document="${s.type}"]`)?.focus({preventScroll:true});return;}
   if(action==="document-back"){s.type="";s.phase="document";persistSaleDraft();render();}
-  if(action==="scan"){state.query="";s.phase="scan";persistSaleDraft();render();}
+  if(action==="scan"){state.query="";s.error="";s.phase="scan";persistSaleDraft();render();}
   if(action==="checkout")void salesWork(async()=>{validateSaleItems(s.items);s.type="";s.phase="document";});
   if(action==="cancel-price"){s.pending=null;s.error="";persistSaleDraft();render();}
   if(action==="remove"){s.items.splice(Number(button.dataset.index),1);persistSaleDraft();render();}
