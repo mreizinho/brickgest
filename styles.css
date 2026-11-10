@@ -687,3 +687,6 @@ input[data-movement-field="cost"]::-webkit-inner-spin-button,input[data-movement
   .batch-swipe-item .batch-desktop-delete:hover .batch-trash-icon{animation:batch-trash-confirm .42s cubic-bezier(.2,.85,.3,1.2) both}
   .batch-swipe-item .batch-desktop-delete:hover .batch-trash-lid{animation:batch-trash-lid-close .42s cubic-bezier(.2,.8,.2,1) both}
 }
+
+.consultation-results-heading{flex-wrap:wrap;gap:12px}.consultation-sort{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px}.consultation-sort>.select-control{height:40px;min-width:220px}.consultation-sort select{height:40px;width:100%;padding:0 42px 0 10px;border:1px solid #cbd0d3;border-radius:4px;background:#fff;color:#333536;font:inherit;appearance:none}.consultation-sort .select-arrow{width:32px}
+@media(max-width:520px){.consultation-sort{margin-left:0;margin-top:8px;width:100%;justify-content:space-between}.consultation-sort>.select-control{min-width:0;flex:1}.consultation-sort select{font-size:13px}}

@@ -117,7 +117,7 @@ function emptyConsultationFilters() {
 }
 
 function emptyConsultationState() {
-  return { filtersOpen: true, filters: emptyConsultationFilters(), appliedFilters: emptyConsultationFilters(), rows: [], items: [], loading: false, loaded: false, error: "" };
+  return { sort: "set-asc", filtersOpen: true, filters: emptyConsultationFilters(), appliedFilters: emptyConsultationFilters(), rows: [], items: [], loading: false, loaded: false, error: "" };
 }
 
 function emptyBatchState(userEmail = "", inventory = false) {
@@ -324,6 +324,17 @@ function consultationItems(rows = state.consultation.rows) {
   }).filter(item => item.stock > 0);
 }
 
+function compareConsultationItems(left, right, order = "set-asc") {
+  const byCode = String(left.code).localeCompare(String(right.code), "pt", { numeric: true, sensitivity: "base" });
+  if (order === "value-asc" || order === "value-desc") {
+    const leftKnown = Number.isFinite(left.value), rightKnown = Number.isFinite(right.value);
+    if (leftKnown !== rightKnown) return leftKnown ? -1 : 1;
+    if (leftKnown && left.value !== right.value) return (left.value - right.value) * (order === "value-desc" ? -1 : 1);
+    return byCode;
+  }
+  return byCode * (order === "set-desc" ? -1 : 1);
+}
+
 function consultationResults(sourceItems = null, filters = state.consultation.appliedFilters) {
   const matchesText = (value, filter) => !normalizeSearchText(filter) || normalizeSearchText(value).includes(normalizeSearchText(filter));
   const minimum = parseMoneyValue(filters.valueMin);
@@ -344,7 +355,7 @@ function consultationResults(sourceItems = null, filters = state.consultation.ap
     }
     if (filters.valueOperator === "between" && Number.isFinite(maximum) && (!Number.isFinite(item.value) || item.value > maximum)) return false;
     return true;
-  }).sort((left, right) => left.code.localeCompare(right.code, "pt", { numeric: true, sensitivity: "base" }));
+  }).sort((left, right) => compareConsultationItems(left, right, sourceItems ? "set-asc" : state.consultation.sort));
 }
 
 function allocateAcrossLocations(locations, requestedQuantity) {
@@ -821,7 +832,7 @@ function consultationMarkup() {
   return `<section class="workspace consultation-page"><section class="batch-panel consultation-panel">
     ${heading}
     ${consultationFilterMarkup()}
-    <div class="consultation-results-heading"><h3>Resultados</h3><span>${results.length} ${results.length === 1 ? "referência" : "referências"} · ${units.toLocaleString("pt-PT")} ${units === 1 ? "unidade" : "unidades"}</span></div>
+    <div class="consultation-results-heading"><h3>Resultados</h3><span>${results.length} ${results.length === 1 ? "referência" : "referências"} · ${units.toLocaleString("pt-PT")} ${units === 1 ? "unidade" : "unidades"}</span><label class="consultation-sort"><span>Ordenar por</span><span class="select-control consultation-select-control"><select data-consultation-sort aria-label="Ordenar resultados">${[["set-asc","N.º de set · Ascendente"],["set-desc","N.º de set · Descendente"],["value-asc","PVR · Ascendente"],["value-desc","PVR · Descendente"]].map(([value,label])=>`<option value="${value}"${(consultation.sort||"set-asc")===value?" selected":""}>${label}</option>`).join("")}</select><span class="select-arrow" aria-hidden="true">▾</span></span></label></div>
     <div class="consultation-results">${resultList}</div>
   </section></section>`;
 }
@@ -3826,6 +3837,13 @@ document.addEventListener("submit", async event => {
   if (event.target.id !== "custom-article-form") return;
   event.preventDefault();
   await saveCustomArticle();
+});
+
+document.addEventListener("change", event => {
+  if (!event.target.matches?.("[data-consultation-sort]")) return;
+  if (!["set-asc", "set-desc", "value-asc", "value-desc"].includes(event.target.value)) return;
+  state.consultation.sort = event.target.value;
+  renderPreservingContentScroll();
 });
 
 document.addEventListener("input", async event => {
